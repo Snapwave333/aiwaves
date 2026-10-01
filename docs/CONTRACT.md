@@ -140,7 +140,11 @@ aiwaves set <project> <target> <value> --reason "…" [--agent NAME] [--evidence
 aiwaves do <project> <verb> [<target>] [--value JSON] --reason "…"   # any verb
 aiwaves import-events <project> <file.jsonl>      # replay a recorded build (for demos), with --delay-ms
 ```
-Global: `--server URL` (default `http://127.0.0.1:8787`), `--token` (default `$AIWAVES_TOKEN`).
+Global: `--server URL` (default `$AIWAVES_SERVER`, else the running desktop app, else
+`http://127.0.0.1:8787`), `--token` (default `$AIWAVES_TOKEN`, else the desktop app's).
+The desktop app publishes `server.json` (`{"url", "token", "pid"}`, local URLs only) in its data
+folder (`%APPDATA%/AIWaves`) while it runs, so agents on the machine reach it with no flags and
+every change they make shows up live in its window (scripts: `music/scripts/aiwaves_live.py`).
 Output is JSON on stdout, errors as `{ "error": … }` on stderr with a non-zero exit code.
 
 ## 8. Frontend (read-only workspace)

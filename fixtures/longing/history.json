@@ -1,6 +1,21 @@
 {
  "changelog": [
   {
+   "version": "5.2",
+   "date": "2026-10-01",
+   "title": "A talking bass (Tipper / CloZee)",
+   "groups": [
+    {
+     "name": "Changed",
+     "items": [
+      "The drops' mid-bass is now a Surge XT bass played like a performer, replacing the distorted contrabass pizzicato (two hits a bar, the weakest genre element). Surge renders in 5.8 ms steps and its filter (the \"vowel\") and wavefolder are set between steps, so every note carries a gesture: a \"wow\" that opens and closes, a \"yoy\" wobbling at 32nds, a stab, a rise, a fall, a chewing growl. Each 4-bar phrase goes call, answer, talk, fill, between the kicks; drop 2 plays hardest.",
+      "Sound: two saws (one an octave down) into a West Coast wavefolder and a resonant OB-Xd low-pass; after it a gentle high-pass at 70 Hz (the clean mono sub owns the bottom), an OTT-style three-band squash, and width above 400 Hz only. Its notes follow the chord (octave and fifth snap to the bar's chord).",
+      "Mix, measured: the mid-bass now exists between 300 Hz and 2.5 kHz in the drops (her chops were 26-36 dB over it there, now 10-16 dB): present, still under her. It ducks up to 5 dB while her chops sound; her vocal margin stays within 0.6 dB of v5.1."
+     ]
+    }
+   ]
+  },
+  {
    "version": "5.1",
    "date": "2026-09-30",
    "title": "Film VFX from Surge XT; a cleaner mix",
@@ -233,6 +248,19 @@
   }
  ],
  "commits": [
+  {
+   "hash": "8a631edb110fec49e1f9275e98908466d5aafd81",
+   "short": "8a631ed",
+   "date": "2026-09-30T21:45:25-06:00",
+   "author": "Hermes Agent",
+   "subject": "Retire the legacy HTML player; listen in the AIWaves desktop app",
+   "body": "longing/player.html removed (in git history); the never-committed von Braun\ncopy moved to mad_scientist/backup/legacy_player.html. aiwaves_export.py is\nnow only the changelog/git reader; export_aiwaves_longing.py also syncs each\nnew render into the desktop app's project folder. Notes updated (and a line\ngarbled by an earlier edit repaired).",
+   "files": [
+    "samples/vocals_new/longing/player.html"
+   ],
+   "added": 0,
+   "removed": 266
+  },
   {
    "hash": "bcd2d221f16b1b1ae587e339d548aef2891e877e",
    "short": "bcd2d22",

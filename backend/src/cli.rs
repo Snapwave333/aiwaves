@@ -17,14 +17,10 @@ use std::time::Duration;
     about = "AIWaves: agent-first DAW — server and CLI"
 )]
 pub struct Cli {
-    /// Server to talk to.
-    #[arg(
-        long,
-        global = true,
-        env = "AIWAVES_SERVER",
-        default_value = "http://127.0.0.1:8787"
-    )]
-    pub server: String,
+    /// Server to talk to. Default: the running desktop app (its server.json), else
+    /// http://127.0.0.1:8787.
+    #[arg(long, global = true, env = "AIWAVES_SERVER")]
+    pub server: Option<String>,
     /// Token for commands (and the token `serve` accepts).
     #[arg(long, global = true, env = "AIWAVES_TOKEN", hide_env_values = true)]
     pub token: Option<String>,
@@ -218,11 +214,42 @@ pub async fn run(cli: Cli) -> ExitCode {
     }
 }
 
+/// Where the desktop app says its server is: `server.json` (`{"url", "token"}`) in the app's data
+/// folder ($AIWAVES_APP_DIR, else %APPDATA%/AIWaves on Windows, ~/.config/AIWaves elsewhere).
+fn desktop_server() -> Option<(String, Option<String>)> {
+    let dir = std::env::var_os("AIWAVES_APP_DIR")
+        .map(PathBuf::from)
+        .or_else(|| std::env::var_os("APPDATA").map(|d| PathBuf::from(d).join("AIWaves")))
+        .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".config/AIWaves")))?;
+    let v: Value = serde_json::from_str(&std::fs::read_to_string(dir.join("server.json")).ok()?).ok()?;
+    let url = v.get("url")?.as_str()?;
+    if !(url.starts_with("http://127.0.0.1:") || url.starts_with("http://localhost:")) {
+        return None; // only ever a local server
+    }
+    let token = v.get("token").and_then(Value::as_str).map(String::from);
+    Some((url.to_string(), token))
+}
+
 async fn run_inner(cli: Cli) -> CliResult<()> {
+    let found = if cli.server.is_none() && !matches!(cli.cmd, Cmd::Serve { .. }) {
+        desktop_server()
+    } else {
+        None
+    };
+    let base = cli
+        .server
+        .clone()
+        .or_else(|| found.as_ref().map(|(u, _)| u.clone()))
+        .unwrap_or_else(|| "http://127.0.0.1:8787".into());
+    let token = cli
+        .token
+        .clone()
+        .or_else(|| found.and_then(|(_, t)| t))
+        .filter(|t| !t.trim().is_empty());
     let client = Client {
         http: reqwest::Client::new(),
-        base: cli.server.trim_end_matches('/').to_string(),
-        token: cli.token.clone().filter(|t| !t.trim().is_empty()),
+        base: base.trim_end_matches('/').to_string(),
+        token,
     };
     match cli.cmd {
         Cmd::Serve {

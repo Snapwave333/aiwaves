@@ -2,10 +2,12 @@
 // token, waits until it is healthy, and shows the read-only workspace in a native window.
 // Closing the app stops the server. Agents on this machine drive the same server through the
 // `aiwaves` CLI with the token written to <userData>/agent-token.txt (menu: Copy agent token).
+// <userData>/server.json ({url, token, pid}) says where this app's server is, so the CLI and
+// agents' scripts find it with no flags; every change they make shows up live in the window.
 // The menu is the right-click menu (the window has no OS title bar). The opening animation can be
 // turned off there ("Play intro on launch"), with --no-intro, or with AIWAVES_NO_INTRO=1.
 
-const { app, BrowserWindow, Menu, clipboard, dialog, session, shell } = require('electron');
+const { app, BrowserWindow, Menu, clipboard, dialog, screen, session, shell } = require('electron');
 const { spawn } = require('node:child_process');
 const crypto = require('node:crypto');
 const fs = require('node:fs');
@@ -35,6 +37,7 @@ let log = null;
 const token = crypto.randomBytes(24).toString('hex');
 
 /** <userData>/settings.json; anything unreadable or of the wrong type falls back to the default. */
+const SERVER_FILE = () => path.join(app.getPath('userData'), 'server.json');
 const SETTINGS_FILE = () => path.join(app.getPath('userData'), 'settings.json');
 function readSettings() {
   let v = {};
@@ -129,7 +132,11 @@ async function startServer() {
     }
   });
   for (let i = 0; i < 150; i++) {
-    if (await healthy(port)) return { port, data };
+    if (await healthy(port)) {
+      fs.writeFileSync(SERVER_FILE(), `${JSON.stringify({ url: `http://127.0.0.1:${port}`, token, pid: process.pid }, null, 2)}
+`, { mode: 0o600 });
+      return { port, data };
+    }
     await new Promise((r) => setTimeout(r, 100));
   }
   throw new Error('The AIWaves server did not become healthy within 15 s (see logs/server.log).');
@@ -188,8 +195,9 @@ function lockDown() {
 async function createWindow() {
   lockDown();
   win = new BrowserWindow({
-    width: 1600,
-    height: 980,
+    // fit the screen: a window wider than the display loses its right-hand panels
+    width: Math.min(1600, screen.getPrimaryDisplay().workAreaSize.width),
+    height: Math.min(980, screen.getPrimaryDisplay().workAreaSize.height),
     minWidth: 1024,
     minHeight: 680,
     title: 'AIWaves',
@@ -202,7 +210,11 @@ async function createWindow() {
     show: false,
     webPreferences: { contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false },
   });
-  win.once('ready-to-show', () => win.show());
+  win.once('ready-to-show', () => {
+    const area = screen.getPrimaryDisplay().workAreaSize;
+    if (area.width < 1600 || area.height < 980) win.maximize();   // a small screen: use all of it
+    win.show();
+  });
   // the opening animation plays while the server starts; whichever finishes last opens the workspace
   const serverStart = startServer();
   serverStart.catch(() => {});                        // reported below, once the splash is done
@@ -262,6 +274,9 @@ if (!app.requestSingleInstanceLock()) {
   app.whenReady().then(createWindow);
   app.on('before-quit', () => {
     app.isQuitting = true;
+    try {                                              // only our own file: another instance may have replaced it
+      if (JSON.parse(fs.readFileSync(SERVER_FILE(), 'utf8')).pid === process.pid) fs.rmSync(SERVER_FILE());
+    } catch { /* already gone */ }
     if (server && server.exitCode === null) server.kill();
   });
   app.on('window-all-closed', () => app.quit());
