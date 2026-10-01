@@ -57,6 +57,16 @@ history.json      optional: {"changelog": [...], "commits": [...], "branch": "..
   "params": [ { "id": "feedback", "name": "Feedback", "value": 0.62, "min": 0, "max": 1, "unit": "",
                 "display": "62 %" } ] }
 ```
+**Clip contents (v0.1, so the arrangement reads like Ableton's):**
+- Audio clips may carry `"peaks": [0.0 .. 1.0, …]` — the clip's own waveform, values evenly spread
+  over the clip's length (about 24 per second). Draw it inside the clip.
+- MIDI clips carry `"notes": [{ "start_beat", "length_beats", "midi", "velocity", "label"? }]`,
+  beats relative to the clip start; draw them as a piano-roll preview inside the clip (pitch =
+  vertical position, length = width, velocity = brightness). For `kind: "drum"` tracks `midi` is a
+  lane number and `label` the drum name ("deep", "snare", …): draw one row per lane.
+- Clips may be dense: one per vocal piece (about 70 on the vocal tracks), one per bar for the
+  zither. The view must fit the whole song on screen and stay readable when zoomed in.
+
 Device `type` is free text for display (eq, compressor, delay, reverb, filter, sampler, synth,
 shimmer, freeze, chorus, utility, limiter, …); the UI picks an icon by type, falling back to a
 generic one.
