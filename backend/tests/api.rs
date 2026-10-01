@@ -23,6 +23,20 @@ fn last() -> u64 {
     .count() as u64
 }
 
+/// The fixture's latest `version.tag` (what a new event is stamped with).
+fn last_version() -> String {
+    let text = std::fs::read_to_string(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../fixtures/longing/events.jsonl"
+    ))
+    .unwrap();
+    text.lines()
+        .filter_map(|l| serde_json::from_str::<serde_json::Value>(l).ok())
+        .rfind(|e| e["verb"] == "version.tag")
+        .map(|e| e["to"].as_str().unwrap().to_string())
+        .unwrap()
+}
+
 const TOKEN: &str = "test-token";
 const FB: &str = "tracks.zither.devices.echo.params.feedback";
 
