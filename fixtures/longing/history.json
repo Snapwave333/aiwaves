@@ -1,6 +1,26 @@
 {
  "changelog": [
   {
+   "version": "5.3",
+   "date": "2026-10-01",
+   "title": "Builds that rise into the drops",
+   "groups": [
+    {
+     "name": "Added",
+     "items": [
+      "A build in the three bars before each drop: a hand-drum roll that accelerates (8ths, 16ths, then 32nds into the stop), tunes up a fifth and opens out in stereo; her own chop as the riser, the drop's first note repeating faster and climbing a fourth, taking over the moment she stops singing; and the talking bass teasing the drop on its chord in the stop bar. Everything stops dead at the stop, so the silence before the drop stays."
+     ]
+    },
+    {
+     "name": "Changed",
+     "items": [
+      "Why, measured: the bars before each drop sagged instead of building (drop 1: bars 22-24 at -19.1, -17.3, -18.8 LUFS, falling). Now they rise: -18.2, -14.9, -14.7, into the drop at -11.8. Before drop 2 she sings almost to the stop, so the roll stays 0.7x under her (her voice 12.6 dB over it) and comes up after her last word: bar 48 now -12.3 LUFS, rising into the drop, where it fell to -16.9.",
+      "The band's muffled-to-open sweep into each drop starts at 900 Hz instead of 450: still a lift, no longer a hole. The build itself is left out of the sweep, because it is what rises."
+     ]
+    }
+   ]
+  },
+  {
    "version": "5.2",
    "date": "2026-10-01",
    "title": "A talking bass (Tipper / CloZee)",
@@ -248,6 +268,23 @@
   }
  ],
  "commits": [
+  {
+   "hash": "d5ec0785dd6958d75134dd8586d20fdbacdde839",
+   "short": "d5ec078",
+   "date": "2026-10-01T16:03:36-06:00",
+   "author": "Hermes Agent",
+   "subject": "Longing v5.2: a talking bass (Tipper / CloZee), sent live to AIWaves",
+   "body": "- tipper_bass.py: Surge XT played like a performer. It renders in 5.8 ms steps\n  and sets the filter (\"vowel\") and wavefolder between steps, so each note\n  carries a gesture (wow, yoy, stab, rise, fall, growl). Phrases run call,\n  answer, talk, fill between the kicks. Then a 70 Hz high-pass (the mono sub\n  owns the bottom), an OTT-style 3-band squash, and width above 400 Hz.\n  This replaces the distorted pizzicato growl in the drops; it ducks under\n  her chops.\n- Measured: the drops' mid-bass now exists between 300 Hz and 2.5 kHz (chops\n  over it: 26-36 dB -> 10-16 dB); her vocal margin is within 0.6 dB of v5.1.\n- aiwaves_live.py + export: a running AIWaves app gets each new version as\n  live commands (knobs turn, devices and clips appear, the render loads),\n  never by overwriting its files.",
+   "files": [
+    "samples/vocals_new/longing/CHANGELOG.md",
+    "samples/vocals_new/longing/arrangement.json",
+    "samples/vocals_new/longing/longing_song.map.js",
+    "samples/vocals_new/longing/longing_song.wav",
+    "scripts/make_longing_song.py"
+   ],
+   "added": 26,
+   "removed": 19
+  },
   {
    "hash": "8a631edb110fec49e1f9275e98908466d5aafd81",
    "short": "8a631ed",
