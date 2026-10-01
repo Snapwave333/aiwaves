@@ -1,0 +1,29 @@
+<aw-transport />
+@if (store.mode() === 'demo') {
+  <div class="banner banner-demo" role="status">
+    <b>Demo data.</b> The AIWaves backend (127.0.0.1:8787) isn't reachable, so this is the recorded
+    "Longing" project, read-only. It switches to live automatically when the backend comes up.
+    <button type="button" class="mini-btn" (click)="store.init()">Retry now</button>
+  </div>
+}
+@if (store.loadError(); as err) {
+  <div class="banner banner-error" role="alert">Couldn't load the project: {{ err }}</div>
+}
+@if (store.mode() === 'live' && store.link() === 'reconnecting') {
+  <div class="banner banner-warn" role="status">
+    Connection lost — reconnecting and catching up on missed events…
+  </div>
+}
+<main class="workspace" [class.replay-active]="!store.atHead()">
+  <aw-arrangement class="area-arr" />
+  <aside class="area-side" aria-label="Activity and history">
+    <aw-activity-feed />
+    <aw-side-panel />
+  </aside>
+  <aw-replay-bar class="area-replay" />
+  <div class="area-bottom">
+    <aw-mixer />
+    <aw-device-chain />
+  </div>
+</main>
+<aw-caption-overlay />

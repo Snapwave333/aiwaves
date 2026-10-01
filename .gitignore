@@ -10,3 +10,6 @@ fixtures/*/audio/
 .idea/
 Thumbs.db
 desktop.ini
+
+# local scratch copy of the fixtures for running the workspace
+.demo-data/
