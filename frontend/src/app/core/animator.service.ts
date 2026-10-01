@@ -19,7 +19,10 @@ export interface Anim {
 export const reducedMotion =
   typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-export const TWEEN_MS = reducedMotion ? 0 : 400;
+/** Controls an agent changes always turn, even with reduced motion: watching every change happen is
+ * what the read-only view is for (and Windows over remote desktop reports reduced motion). Reduced
+ * motion still calms the decoration: glow pulses, panel effects, the visualizer. */
+export const TWEEN_MS = 400;
 export const GLOW_MS = 1600;
 export const CAPTION_MS = 4000;
 /** Captions on screen at once; fast scrubbing would otherwise bury the UI. */
@@ -97,7 +100,7 @@ export class Animator {
     const from = numericOf(a.from);
     const to = numericOf(a.to);
     if (from === null || to === null) return actual;
-    const x = TWEEN_MS === 0 ? 1 : Math.min(1, Math.max(0, (this.now() - a.t0) / TWEEN_MS));
+    const x = Math.min(1, Math.max(0, (this.now() - a.t0) / TWEEN_MS));
     return x >= 1 ? actual : from + (to - from) * easeInOutCubic(x);
   }
 
