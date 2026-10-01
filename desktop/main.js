@@ -12,6 +12,8 @@ const net = require('node:net');
 const path = require('node:path');
 
 const DEV = !app.isPackaged;
+// the opening animation plays with sound, without waiting for a click
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 const REPO = path.resolve(__dirname, '..');
 const RES = DEV ? REPO : process.resourcesPath;
 
@@ -163,10 +165,22 @@ async function createWindow() {
     webPreferences: { contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false },
   });
   win.once('ready-to-show', () => win.show());
-  await win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(BOOT_SCREEN)}`);
+  // the opening animation plays while the server starts; whichever finishes last opens the workspace
+  const splashDone = new Promise((resolve) => {
+    const onNav = (_e, url) => { if (url.endsWith('#done')) { win.webContents.off('did-navigate-in-page', onNav); resolve(); } };
+    win.webContents.on('did-navigate-in-page', onNav);
+    setTimeout(resolve, 20000);
+  });
+  const splash = path.join(__dirname, 'splash', 'index.html');
+  if (fs.existsSync(splash)) await win.loadFile(splash);
+  const serverStart = startServer();
   let started;
   try {
-    started = await startServer();
+    await splashDone;
+    if (!(await Promise.race([serverStart.then(() => true), new Promise((r) => setTimeout(() => r(false), 50))]))) {
+      await win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(BOOT_SCREEN)}`);   // still starting
+    }
+    started = await serverStart;
   } catch (e) {
     dialog.showErrorBox('AIWaves could not start', String(e.message || e));
     app.quit();

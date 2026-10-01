@@ -22,7 +22,8 @@
     },
     "files": [
       "main.js",
-      "build/icon.png"
+      "build/icon.png",
+      "splash/**"
     ],
     "extraResources": [
       {

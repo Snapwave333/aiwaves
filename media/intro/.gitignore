@@ -1,0 +1,7 @@
+frames/
+contact/
+contact2/
+shots/
+sfx_cache/
+*.log
+live_bridge.py

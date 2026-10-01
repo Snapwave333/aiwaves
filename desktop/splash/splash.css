@@ -1,0 +1,9 @@
+html, body { margin: 0; height: 100%; background: #07090d; overflow: hidden; cursor: default; -webkit-app-region: drag; }
+video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #f2f2f4;
+        transition: opacity 450ms ease, filter 450ms ease; }
+body.out video { opacity: 0; filter: brightness(0.2); }
+.skip { position: fixed; right: 28px; bottom: 22px; font: 600 11px/1 "Segoe UI", sans-serif; letter-spacing: .3em;
+        color: rgba(10, 12, 16, .55); opacity: 0; transition: opacity 600ms ease 1.2s; -webkit-app-region: no-drag; }
+body.ready .skip { opacity: 1; }
+body.out .skip { opacity: 0; transition-delay: 0s; }
+@media (prefers-reduced-motion: reduce) { video { transition: none; } }
