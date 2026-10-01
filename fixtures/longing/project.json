@@ -1,0 +1,2616 @@
+{
+ "schema": "aiwaves/project@1",
+ "id": "longing",
+ "title": "Longing",
+ "artist": "Madam Snowflake (vocal, CC BY 3.0) + Claude",
+ "bpm": 80.0,
+ "time_signature": [
+  4,
+  4
+ ],
+ "key": "A minor",
+ "length_bars": 65,
+ "version": 42,
+ "sections": [
+  {
+   "name": "intro",
+   "start_bar": 0,
+   "end_bar": 8
+  },
+  {
+   "name": "verse",
+   "start_bar": 8,
+   "end_bar": 25
+  },
+  {
+   "name": "drop",
+   "start_bar": 25,
+   "end_bar": 41
+  },
+  {
+   "name": "verse 2",
+   "start_bar": 41,
+   "end_bar": 49
+  },
+  {
+   "name": "drop 2",
+   "start_bar": 49,
+   "end_bar": 57
+  },
+  {
+   "name": "outro",
+   "start_bar": 57,
+   "end_bar": 65
+  }
+ ],
+ "chords": [
+  {
+   "bar": 0,
+   "name": "Am"
+  },
+  {
+   "bar": 1,
+   "name": "G"
+  },
+  {
+   "bar": 2,
+   "name": "Am"
+  },
+  {
+   "bar": 3,
+   "name": "G"
+  },
+  {
+   "bar": 4,
+   "name": "Am"
+  },
+  {
+   "bar": 5,
+   "name": "G"
+  },
+  {
+   "bar": 6,
+   "name": "Am"
+  },
+  {
+   "bar": 7,
+   "name": "G"
+  },
+  {
+   "bar": 8,
+   "name": "Am"
+  },
+  {
+   "bar": 9,
+   "name": "G"
+  },
+  {
+   "bar": 10,
+   "name": "Am"
+  },
+  {
+   "bar": 11,
+   "name": "Am"
+  },
+  {
+   "bar": 12,
+   "name": "A"
+  },
+  {
+   "bar": 13,
+   "name": "F"
+  },
+  {
+   "bar": 14,
+   "name": "Am"
+  },
+  {
+   "bar": 15,
+   "name": "Am"
+  },
+  {
+   "bar": 16,
+   "name": "F"
+  },
+  {
+   "bar": 17,
+   "name": "G"
+  },
+  {
+   "bar": 18,
+   "name": "G"
+  },
+  {
+   "bar": 19,
+   "name": "F"
+  },
+  {
+   "bar": 20,
+   "name": "G"
+  },
+  {
+   "bar": 21,
+   "name": "Am"
+  },
+  {
+   "bar": 22,
+   "name": "Em"
+  },
+  {
+   "bar": 23,
+   "name": "F"
+  },
+  {
+   "bar": 24,
+   "name": "Em"
+  },
+  {
+   "bar": 25,
+   "name": "Am"
+  },
+  {
+   "bar": 26,
+   "name": "G"
+  },
+  {
+   "bar": 27,
+   "name": "Am"
+  },
+  {
+   "bar": 28,
+   "name": "Am"
+  },
+  {
+   "bar": 29,
+   "name": "A"
+  },
+  {
+   "bar": 30,
+   "name": "F"
+  },
+  {
+   "bar": 31,
+   "name": "Am"
+  },
+  {
+   "bar": 32,
+   "name": "Am"
+  },
+  {
+   "bar": 33,
+   "name": "F"
+  },
+  {
+   "bar": 34,
+   "name": "G"
+  },
+  {
+   "bar": 35,
+   "name": "G"
+  },
+  {
+   "bar": 36,
+   "name": "F"
+  },
+  {
+   "bar": 37,
+   "name": "G"
+  },
+  {
+   "bar": 38,
+   "name": "Am"
+  },
+  {
+   "bar": 39,
+   "name": "Em"
+  },
+  {
+   "bar": 40,
+   "name": "F"
+  },
+  {
+   "bar": 41,
+   "name": "Am"
+  },
+  {
+   "bar": 42,
+   "name": "F"
+  },
+  {
+   "bar": 43,
+   "name": "Am"
+  },
+  {
+   "bar": 44,
+   "name": "Am"
+  },
+  {
+   "bar": 45,
+   "name": "Am"
+  },
+  {
+   "bar": 46,
+   "name": "F"
+  },
+  {
+   "bar": 47,
+   "name": "Am"
+  },
+  {
+   "bar": 48,
+   "name": "A"
+  },
+  {
+   "bar": 49,
+   "name": "Am"
+  },
+  {
+   "bar": 50,
+   "name": "G"
+  },
+  {
+   "bar": 51,
+   "name": "Am"
+  },
+  {
+   "bar": 52,
+   "name": "Am"
+  },
+  {
+   "bar": 53,
+   "name": "A"
+  },
+  {
+   "bar": 54,
+   "name": "F"
+  },
+  {
+   "bar": 55,
+   "name": "Am"
+  },
+  {
+   "bar": 56,
+   "name": "Am"
+  },
+  {
+   "bar": 57,
+   "name": "F"
+  },
+  {
+   "bar": 58,
+   "name": "G"
+  },
+  {
+   "bar": 59,
+   "name": "G"
+  },
+  {
+   "bar": 60,
+   "name": "Am"
+  },
+  {
+   "bar": 61,
+   "name": "F"
+  },
+  {
+   "bar": 62,
+   "name": "G"
+  },
+  {
+   "bar": 63,
+   "name": "A"
+  },
+  {
+   "bar": 64,
+   "name": "A"
+  }
+ ],
+ "audio": {
+  "master": "audio/master.wav",
+  "duration_s": 201.0,
+  "peaks": [
+   0.006,
+   0.01,
+   0.024,
+   0.026,
+   0.034,
+   0.046,
+   0.055,
+   0.048,
+   0.056,
+   0.058,
+   0.054,
+   0.07,
+   0.086,
+   0.083,
+   0.107,
+   0.143,
+   0.184,
+   0.205,
+   0.215,
+   0.194,
+   0.23,
+   0.354,
+   0.342,
+   0.781,
+   0.533,
+   0.225,
+   0.326,
+   0.226,
+   0.502,
+   0.479,
+   0.583,
+   0.295,
+   0.652,
+   0.576,
+   0.259,
+   0.335,
+   0.528,
+   0.481,
+   0.464,
+   0.494,
+   0.492,
+   0.453,
+   0.52,
+   0.518,
+   0.685,
+   0.518,
+   0.414,
+   0.36,
+   0.308,
+   0.319,
+   0.36,
+   0.369,
+   0.36,
+   0.39,
+   0.326,
+   0.36,
+   0.386,
+   0.328,
+   0.38,
+   0.495,
+   0.398,
+   0.289,
+   0.317,
+   0.389,
+   0.427,
+   0.436,
+   0.356,
+   0.339,
+   0.337,
+   0.33,
+   0.368,
+   0.781,
+   0.464,
+   0.385,
+   0.43,
+   0.427,
+   0.563,
+   0.622,
+   0.544,
+   0.461,
+   0.615,
+   0.524,
+   0.564,
+   0.754,
+   0.69,
+   0.589,
+   0.715,
+   0.546,
+   0.666,
+   0.757,
+   0.747,
+   0.738,
+   0.781,
+   0.781,
+   0.547,
+   0.544,
+   0.401,
+   0.396,
+   0.495,
+   0.51,
+   0.492,
+   0.403,
+   0.387,
+   0.553,
+   0.563,
+   0.585,
+   0.548,
+   0.612,
+   0.429,
+   0.489,
+   0.468,
+   0.452,
+   0.505,
+   0.574,
+   0.284,
+   0.371,
+   0.432,
+   0.455,
+   0.523,
+   0.568,
+   0.371,
+   0.354,
+   0.386,
+   0.436,
+   0.404,
+   0.272,
+   0.292,
+   0.347,
+   0.348,
+   0.31,
+   0.277,
+   0.457,
+   0.379,
+   0.334,
+   0.378,
+   0.309,
+   0.421,
+   0.421,
+   0.656,
+   0.781,
+   0.781,
+   0.781,
+   0.781,
+   0.476,
+   0.425,
+   0.433,
+   0.48,
+   0.437,
+   0.469,
+   0.431,
+   0.484,
+   0.459,
+   0.476,
+   0.479,
+   0.451,
+   0.504,
+   0.504,
+   0.453,
+   0.47,
+   0.473,
+   0.436,
+   0.376,
+   0.387,
+   0.342,
+   0.383,
+   0.382,
+   0.398,
+   0.442,
+   0.36,
+   0.353,
+   0.346,
+   0.316,
+   0.302,
+   0.271,
+   0.404,
+   0.309,
+   0.339,
+   0.324,
+   0.291,
+   0.444,
+   0.445,
+   0.358,
+   0.385,
+   0.376,
+   0.47,
+   0.501,
+   0.744,
+   0.781,
+   0.781,
+   0.781,
+   0.549,
+   0.514,
+   0.399,
+   0.413,
+   0.531,
+   0.448,
+   0.505,
+   0.494,
+   0.579,
+   0.556,
+   0.486,
+   0.532,
+   0.52,
+   0.515,
+   0.524,
+   0.476,
+   0.481,
+   0.413,
+   0.42,
+   0.335,
+   0.4,
+   0.338,
+   0.382,
+   0.28,
+   0.449,
+   0.468,
+   0.372,
+   0.452,
+   0.467,
+   0.481,
+   0.402,
+   0.308,
+   0.415,
+   0.399,
+   0.375,
+   0.404,
+   0.472,
+   0.389,
+   0.321,
+   0.375,
+   0.365,
+   0.337,
+   0.517,
+   0.387,
+   0.407,
+   0.371,
+   0.339,
+   0.4,
+   0.58,
+   0.481,
+   0.452,
+   0.504,
+   0.444,
+   0.495,
+   0.411,
+   0.374,
+   0.442,
+   0.466,
+   0.442,
+   0.378,
+   0.433,
+   0.386,
+   0.39,
+   0.439,
+   0.397,
+   0.398,
+   0.482,
+   0.35,
+   0.444,
+   0.365,
+   0.272,
+   0.281,
+   0.453,
+   0.4,
+   0.418,
+   0.344,
+   0.311,
+   0.241,
+   0.27,
+   0.184,
+   0.279,
+   0.332,
+   0.307,
+   0.306,
+   0.332,
+   0.285,
+   0.252,
+   0.276,
+   0.222,
+   0.271,
+   0.287,
+   0.227,
+   0.63,
+   0.781,
+   0.483,
+   0.718,
+   0.458,
+   0.374,
+   0.328,
+   0.358,
+   0.292,
+   0.369,
+   0.331,
+   0.274,
+   0.07,
+   0.009,
+   0.003,
+   0.001,
+   0.601,
+   0.463,
+   0.781,
+   0.781,
+   0.479,
+   0.711,
+   0.781,
+   0.605,
+   0.675,
+   0.743,
+   0.748,
+   0.781,
+   0.781,
+   0.572,
+   0.443,
+   0.722,
+   0.472,
+   0.781,
+   0.781,
+   0.534,
+   0.482,
+   0.718,
+   0.72,
+   0.517,
+   0.639,
+   0.65,
+   0.63,
+   0.679,
+   0.623,
+   0.776,
+   0.781,
+   0.781,
+   0.666,
+   0.781,
+   0.781,
+   0.781,
+   0.781,
+   0.448,
+   0.506,
+   0.781,
+   0.466,
+   0.389,
+   0.781,
+   0.449,
+   0.567,
+   0.493,
+   0.545,
+   0.522,
+   0.781,
+   0.724,
+   0.738,
+   0.781,
+   0.55,
+   0.65,
+   0.781,
+   0.616,
+   0.781,
+   0.781,
+   0.58,
+   0.686,
+   0.781,
+   0.593,
+   0.579,
+   0.651,
+   0.781,
+   0.517,
+   0.781,
+   0.557,
+   0.458,
+   0.781,
+   0.474,
+   0.44,
+   0.691,
+   0.781,
+   0.507,
+   0.631,
+   0.654,
+   0.722,
+   0.781,
+   0.75,
+   0.762,
+   0.781,
+   0.524,
+   0.54,
+   0.781,
+   0.532,
+   0.473,
+   0.781,
+   0.451,
+   0.449,
+   0.781,
+   0.57,
+   0.617,
+   0.542,
+   0.55,
+   0.522,
+   0.652,
+   0.455,
+   0.563,
+   0.508,
+   0.544,
+   0.559,
+   0.532,
+   0.549,
+   0.582,
+   0.728,
+   0.592,
+   0.64,
+   0.656,
+   0.492,
+   0.566,
+   0.653,
+   0.469,
+   0.469,
+   0.344,
+   0.505,
+   0.497,
+   0.523,
+   0.506,
+   0.757,
+   0.781,
+   0.561,
+   0.781,
+   0.523,
+   0.781,
+   0.781,
+   0.781,
+   0.627,
+   0.781,
+   0.678,
+   0.781,
+   0.781,
+   0.781,
+   0.696,
+   0.781,
+   0.781,
+   0.577,
+   0.781,
+   0.781,
+   0.566,
+   0.575,
+   0.492,
+   0.663,
+   0.776,
+   0.505,
+   0.508,
+   0.607,
+   0.429,
+   0.618,
+   0.596,
+   0.403,
+   0.61,
+   0.548,
+   0.48,
+   0.497,
+   0.7,
+   0.519,
+   0.476,
+   0.539,
+   0.507,
+   0.532,
+   0.562,
+   0.33,
+   0.564,
+   0.48,
+   0.4,
+   0.597,
+   0.781,
+   0.781,
+   0.773,
+   0.781,
+   0.499,
+   0.781,
+   0.781,
+   0.741,
+   0.781,
+   0.781,
+   0.598,
+   0.781,
+   0.781,
+   0.674,
+   0.546,
+   0.781,
+   0.781,
+   0.622,
+   0.781,
+   0.646,
+   0.718,
+   0.733,
+   0.551,
+   0.704,
+   0.495,
+   0.381,
+   0.42,
+   0.481,
+   0.455,
+   0.504,
+   0.48,
+   0.436,
+   0.483,
+   0.509,
+   0.497,
+   0.525,
+   0.573,
+   0.561,
+   0.416,
+   0.463,
+   0.507,
+   0.5,
+   0.324,
+   0.327,
+   0.399,
+   0.491,
+   0.515,
+   0.493,
+   0.773,
+   0.417,
+   0.429,
+   0.495,
+   0.349,
+   0.472,
+   0.403,
+   0.432,
+   0.402,
+   0.485,
+   0.353,
+   0.362,
+   0.541,
+   0.358,
+   0.371,
+   0.413,
+   0.382,
+   0.384,
+   0.448,
+   0.463,
+   0.484,
+   0.551,
+   0.445,
+   0.416,
+   0.498,
+   0.351,
+   0.397,
+   0.468,
+   0.388,
+   0.498,
+   0.54,
+   0.382,
+   0.478,
+   0.479,
+   0.5,
+   0.588,
+   0.65,
+   0.493,
+   0.486,
+   0.552,
+   0.561,
+   0.432,
+   0.353,
+   0.468,
+   0.453,
+   0.508,
+   0.5,
+   0.425,
+   0.587,
+   0.374,
+   0.378,
+   0.418,
+   0.411,
+   0.431,
+   0.383,
+   0.406,
+   0.407,
+   0.438,
+   0.39,
+   0.314,
+   0.53,
+   0.398,
+   0.379,
+   0.345,
+   0.336,
+   0.394,
+   0.387,
+   0.296,
+   0.073,
+   0.087,
+   0.059,
+   0.055,
+   0.781,
+   0.781,
+   0.781,
+   0.781,
+   0.781,
+   0.72,
+   0.781,
+   0.781,
+   0.781,
+   0.58,
+   0.781,
+   0.781,
+   0.781,
+   0.571,
+   0.541,
+   0.606,
+   0.781,
+   0.513,
+   0.781,
+   0.428,
+   0.611,
+   0.781,
+   0.613,
+   0.641,
+   0.781,
+   0.781,
+   0.781,
+   0.781,
+   0.781,
+   0.781,
+   0.781,
+   0.768,
+   0.781,
+   0.781,
+   0.781,
+   0.781,
+   0.781,
+   0.545,
+   0.781,
+   0.781,
+   0.444,
+   0.781,
+   0.781,
+   0.581,
+   0.638,
+   0.468,
+   0.583,
+   0.781,
+   0.577,
+   0.474,
+   0.552,
+   0.564,
+   0.521,
+   0.675,
+   0.485,
+   0.781,
+   0.498,
+   0.462,
+   0.66,
+   0.636,
+   0.544,
+   0.498,
+   0.625,
+   0.563,
+   0.492,
+   0.439,
+   0.291,
+   0.496,
+   0.44,
+   0.408,
+   0.529,
+   0.781,
+   0.781,
+   0.781,
+   0.781,
+   0.439,
+   0.781,
+   0.781,
+   0.781,
+   0.781,
+   0.781,
+   0.713,
+   0.781,
+   0.752,
+   0.64,
+   0.496,
+   0.638,
+   0.543,
+   0.474,
+   0.57,
+   0.281,
+   0.526,
+   0.397,
+   0.439,
+   0.551,
+   0.634,
+   0.548,
+   0.417,
+   0.439,
+   0.311,
+   0.412,
+   0.348,
+   0.307,
+   0.352,
+   0.349,
+   0.332,
+   0.311,
+   0.499,
+   0.389,
+   0.429,
+   0.436,
+   0.422,
+   0.352,
+   0.355,
+   0.279,
+   0.42,
+   0.352,
+   0.34,
+   0.383,
+   0.493,
+   0.384,
+   0.34,
+   0.378,
+   0.345,
+   0.381,
+   0.422,
+   0.326,
+   0.349,
+   0.405,
+   0.333,
+   0.421,
+   0.535,
+   0.392,
+   0.399,
+   0.386,
+   0.35,
+   0.317,
+   0.364,
+   0.354,
+   0.484,
+   0.481,
+   0.62,
+   0.442,
+   0.383,
+   0.282,
+   0.293,
+   0.324,
+   0.283,
+   0.367,
+   0.362,
+   0.41,
+   0.374,
+   0.395,
+   0.366,
+   0.406,
+   0.372,
+   0.381,
+   0.374,
+   0.316,
+   0.343,
+   0.36,
+   0.306,
+   0.274,
+   0.338,
+   0.315,
+   0.303,
+   0.286,
+   0.392,
+   0.323,
+   0.293,
+   0.337,
+   0.335,
+   0.313,
+   0.371,
+   0.347,
+   0.39,
+   0.344,
+   0.355,
+   0.313,
+   0.523,
+   0.774,
+   0.723,
+   0.781,
+   0.781,
+   0.596,
+   0.439,
+   0.566,
+   0.57,
+   0.639,
+   0.781,
+   0.781,
+   0.674,
+   0.39,
+   0.263,
+   0.159,
+   0.112,
+   0.11,
+   0.086,
+   0.091,
+   0.086,
+   0.091,
+   0.069,
+   0.07,
+   0.064,
+   0.027,
+   0.013,
+   0.008,
+   0.004,
+   0.002,
+   0.001,
+   0.001,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "tracks": [
+  {
+   "id": "vocal",
+   "name": "Vocal — Madam Snowflake",
+   "kind": "audio",
+   "color": "#e8b04b",
+   "mixer": {
+    "volume_db": 0.0,
+    "pan": 0.0,
+    "mute": false,
+    "solo": false,
+    "sends": {}
+   },
+   "devices": [
+    {
+     "id": "clean",
+     "type": "eq",
+     "name": "Clean",
+     "enabled": true,
+     "params": [
+      {
+       "id": "low_cut",
+       "name": "Low cut",
+       "value": 110,
+       "min": 20,
+       "max": 500,
+       "unit": "Hz",
+       "display": "110 Hz"
+      },
+      {
+       "id": "mud",
+       "name": "Mud 300 Hz",
+       "value": -2.5,
+       "min": -12,
+       "max": 12,
+       "unit": "dB",
+       "display": "-2.5 dB"
+      },
+      {
+       "id": "presence",
+       "name": "Presence 3.2 kHz",
+       "value": 1.5,
+       "min": -12,
+       "max": 12,
+       "unit": "dB",
+       "display": "1.5 dB"
+      },
+      {
+       "id": "air",
+       "name": "Air 10 kHz",
+       "value": 3.0,
+       "min": -12,
+       "max": 12,
+       "unit": "dB",
+       "display": "3.0 dB"
+      }
+     ]
+    },
+    {
+     "id": "deess",
+     "type": "compressor",
+     "name": "De-esser",
+     "enabled": true,
+     "params": [
+      {
+       "id": "freq",
+       "name": "Frequency",
+       "value": 6000,
+       "min": 2000,
+       "max": 12000,
+       "unit": "Hz",
+       "display": "6000 Hz"
+      },
+      {
+       "id": "amount",
+       "name": "Amount",
+       "value": 0.6,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.6"
+      }
+     ]
+    },
+    {
+     "id": "chorus",
+     "type": "chorus",
+     "name": "Detuned doubles",
+     "enabled": true,
+     "params": [
+      {
+       "id": "detune",
+       "name": "Detune",
+       "value": 12,
+       "min": 0,
+       "max": 50,
+       "unit": "cents",
+       "display": "12 cents"
+      },
+      {
+       "id": "delay_l",
+       "name": "Delay L",
+       "value": 17,
+       "min": 0,
+       "max": 60,
+       "unit": "ms",
+       "display": "17 ms"
+      },
+      {
+       "id": "delay_r",
+       "name": "Delay R",
+       "value": 26,
+       "min": 0,
+       "max": 60,
+       "unit": "ms",
+       "display": "26 ms"
+      },
+      {
+       "id": "mix",
+       "name": "Mix",
+       "value": 0.45,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.45"
+      }
+     ]
+    },
+    {
+     "id": "swell",
+     "type": "reverse",
+     "name": "Reverse swell",
+     "enabled": true,
+     "params": [
+      {
+       "id": "length",
+       "name": "Length",
+       "value": 1.2,
+       "min": 0.2,
+       "max": 3,
+       "unit": "s",
+       "display": "1.2 s"
+      },
+      {
+       "id": "mix",
+       "name": "Mix",
+       "value": 0.55,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.55"
+      }
+     ]
+    },
+    {
+     "id": "freeze",
+     "type": "freeze",
+     "name": "Frozen clouds",
+     "enabled": true,
+     "params": [
+      {
+       "id": "length",
+       "name": "Length",
+       "value": 5.0,
+       "min": 1,
+       "max": 10,
+       "unit": "s",
+       "display": "5.0 s"
+      },
+      {
+       "id": "orbit",
+       "name": "Orbit period",
+       "value": 4.0,
+       "min": 1,
+       "max": 16,
+       "unit": "s",
+       "display": "4.0 s"
+      },
+      {
+       "id": "mix",
+       "name": "Mix",
+       "value": 0.4,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.4"
+      }
+     ]
+    },
+    {
+     "id": "throws",
+     "type": "delay",
+     "name": "Echo throws",
+     "enabled": true,
+     "params": [
+      {
+       "id": "time",
+       "name": "Time",
+       "value": 0.5625,
+       "min": 0.05,
+       "max": 2,
+       "unit": "s",
+       "display": "dotted 1/8"
+      },
+      {
+       "id": "repeats",
+       "name": "Repeats",
+       "value": 3,
+       "min": 1,
+       "max": 8,
+       "unit": "",
+       "display": "3"
+      },
+      {
+       "id": "mix",
+       "name": "Mix",
+       "value": 0.4,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.4"
+      }
+     ]
+    },
+    {
+     "id": "stutter",
+     "type": "glitch",
+     "name": "Stutter",
+     "enabled": true,
+     "params": [
+      {
+       "id": "gain",
+       "name": "Gain",
+       "value": 0.5,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.5"
+      }
+     ]
+    },
+    {
+     "id": "hall",
+     "type": "reverb",
+     "name": "Hall",
+     "enabled": true,
+     "params": [
+      {
+       "id": "decay",
+       "name": "Decay",
+       "value": 4.5,
+       "min": 0.5,
+       "max": 12,
+       "unit": "s",
+       "display": "4.5 s"
+      },
+      {
+       "id": "predelay",
+       "name": "Pre-delay",
+       "value": 40,
+       "min": 0,
+       "max": 200,
+       "unit": "ms",
+       "display": "40 ms"
+      },
+      {
+       "id": "mix",
+       "name": "Mix",
+       "value": 0.8,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.8"
+      }
+     ]
+    },
+    {
+     "id": "shimmer",
+     "type": "shimmer",
+     "name": "Shimmer",
+     "enabled": true,
+     "params": [
+      {
+       "id": "octave",
+       "name": "Octave up",
+       "value": 0.33,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.33"
+      },
+      {
+       "id": "fifth",
+       "name": "Fifth up",
+       "value": 0.11,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.11"
+      }
+     ]
+    }
+   ],
+   "clips": [
+    {
+     "id": "v1",
+     "name": "Ending, reversed (ghost)",
+     "start_bar": 1.84,
+     "length_bars": 2.06,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "v2",
+     "name": "First words, take 1",
+     "start_bar": 3.97,
+     "length_bars": 1.57,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "v3",
+     "name": "First words, take 2",
+     "start_bar": 5.99,
+     "length_bars": 1.52,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "v4",
+     "name": "Phrase 1",
+     "start_bar": 7.97,
+     "length_bars": 3.49,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "v5",
+     "name": "Phrase 2",
+     "start_bar": 12.03,
+     "length_bars": 3.17,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "v6",
+     "name": "Phrase 3",
+     "start_bar": 16.01,
+     "length_bars": 3.55,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "v7",
+     "name": "Phrase 4",
+     "start_bar": 19.84,
+     "length_bars": 2.06,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "v8",
+     "name": "Phrase 3, first half",
+     "start_bar": 33.01,
+     "length_bars": 1.5,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "v9",
+     "name": "Phrase 4 (ending)",
+     "start_bar": 36.84,
+     "length_bars": 2.06,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "v10",
+     "name": "Phrase 5",
+     "start_bar": 40.99,
+     "length_bars": 3.31,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "v11",
+     "name": "Phrase 6",
+     "start_bar": 44.99,
+     "length_bars": 3.31,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "v12",
+     "name": "Phrase 2, the peak",
+     "start_bar": 53.03,
+     "length_bars": 1.97,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "v13",
+     "name": "Phrase 7",
+     "start_bar": 56.65,
+     "length_bars": 4.08,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "v14",
+     "name": "Phrase 8",
+     "start_bar": 61.1,
+     "length_bars": 2.81,
+     "color": null,
+     "notes": null
+    }
+   ]
+  },
+  {
+   "id": "doubles",
+   "name": "Vocal doubles (her other take)",
+   "kind": "audio",
+   "color": "#c9923a",
+   "mixer": {
+    "volume_db": -6.0,
+    "pan": 0.0,
+    "mute": false,
+    "solo": false,
+    "sends": {}
+   },
+   "devices": [
+    {
+     "id": "align",
+     "type": "utility",
+     "name": "Note alignment (DTW)",
+     "enabled": true,
+     "params": [
+      {
+       "id": "match",
+       "name": "Same note, same time",
+       "value": 0.83,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "83 %"
+      },
+      {
+       "id": "width",
+       "name": "Split L/R",
+       "value": 0.55,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.55"
+      }
+     ]
+    }
+   ],
+   "clips": [
+    {
+     "id": "d1",
+     "name": "Take 2 under phrase 4",
+     "start_bar": 37.0,
+     "length_bars": 2.73,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "d2",
+     "name": "Take 1 under phrase 5",
+     "start_bar": 41.0,
+     "length_bars": 3.48,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "d3",
+     "name": "Take 1 under phrase 8",
+     "start_bar": 61.0,
+     "length_bars": 2.04,
+     "color": null,
+     "notes": null
+    }
+   ]
+  },
+  {
+   "id": "chops",
+   "name": "Her chops (hook)",
+   "kind": "instrument",
+   "color": "#f0c674",
+   "mixer": {
+    "volume_db": -1.0,
+    "pan": 0.0,
+    "mute": false,
+    "solo": false,
+    "sends": {}
+   },
+   "devices": [
+    {
+     "id": "sampler",
+     "type": "sampler",
+     "name": "Her notes",
+     "enabled": true,
+     "params": [
+      {
+       "id": "zones",
+       "name": "Notes",
+       "value": 52,
+       "min": 1,
+       "max": 128,
+       "unit": "",
+       "display": "52"
+      },
+      {
+       "id": "tune",
+       "name": "Max retune",
+       "value": 2,
+       "min": 0,
+       "max": 12,
+       "unit": "st",
+       "display": "2 st"
+      }
+     ]
+    },
+    {
+     "id": "pickup",
+     "type": "reverse",
+     "name": "Reversed pickups",
+     "enabled": true,
+     "params": [
+      {
+       "id": "gain",
+       "name": "Gain",
+       "value": 0.65,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.65"
+      }
+     ]
+    },
+    {
+     "id": "tapestop",
+     "type": "tape",
+     "name": "Tape stop",
+     "enabled": true,
+     "params": [
+      {
+       "id": "length",
+       "name": "Length",
+       "value": 1.1,
+       "min": 0.25,
+       "max": 4,
+       "unit": "beats",
+       "display": "1.1 beats"
+      }
+     ]
+    },
+    {
+     "id": "shadow",
+     "type": "pitch",
+     "name": "Half-speed shadow",
+     "enabled": true,
+     "params": [
+      {
+       "id": "gain",
+       "name": "Gain",
+       "value": 0.4,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.4"
+      },
+      {
+       "id": "lowpass",
+       "name": "Low-pass",
+       "value": 2500,
+       "min": 200,
+       "max": 20000,
+       "unit": "Hz",
+       "display": "2500 Hz"
+      }
+     ]
+    },
+    {
+     "id": "echo",
+     "type": "delay",
+     "name": "Ping-pong",
+     "enabled": true,
+     "params": [
+      {
+       "id": "time",
+       "name": "Time",
+       "value": 0.5625,
+       "min": 0.05,
+       "max": 2,
+       "unit": "s",
+       "display": "dotted 1/8"
+      },
+      {
+       "id": "mix",
+       "name": "Mix",
+       "value": 0.3,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.3"
+      }
+     ]
+    },
+    {
+     "id": "hall",
+     "type": "reverb",
+     "name": "Hall",
+     "enabled": true,
+     "params": [
+      {
+       "id": "mix",
+       "name": "Mix",
+       "value": 0.45,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.45"
+      }
+     ]
+    },
+    {
+     "id": "shimmer",
+     "type": "shimmer",
+     "name": "Shimmer",
+     "enabled": true,
+     "params": [
+      {
+       "id": "octave",
+       "name": "Octave up",
+       "value": 0.12,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.12"
+      }
+     ]
+    }
+   ],
+   "clips": [
+    {
+     "id": "c1",
+     "name": "Hook",
+     "start_bar": 25.0,
+     "length_bars": 16.0,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "c2",
+     "name": "Hook",
+     "start_bar": 49.0,
+     "length_bars": 8.0,
+     "color": null,
+     "notes": null
+    }
+   ]
+  },
+  {
+   "id": "zither",
+   "name": "Dan tranh (zither)",
+   "kind": "instrument",
+   "color": "#7fc8a9",
+   "mixer": {
+    "volume_db": 0.0,
+    "pan": 0.2,
+    "mute": false,
+    "solo": false,
+    "sends": {}
+   },
+   "devices": [
+    {
+     "id": "sampler",
+     "type": "sampler",
+     "name": "Dan tranh (VCSL)",
+     "enabled": true,
+     "params": [
+      {
+       "id": "articulation",
+       "name": "Pluck / bend / tremolo",
+       "value": 1,
+       "min": 0,
+       "max": 2,
+       "unit": "",
+       "display": "1"
+      }
+     ]
+    },
+    {
+     "id": "eq",
+     "type": "eq",
+     "name": "Tone",
+     "enabled": true,
+     "params": [
+      {
+       "id": "low_cut",
+       "name": "Low cut",
+       "value": 120,
+       "min": 20,
+       "max": 500,
+       "unit": "Hz",
+       "display": "120 Hz"
+      },
+      {
+       "id": "box",
+       "name": "Box 400 Hz",
+       "value": -2.0,
+       "min": -12,
+       "max": 12,
+       "unit": "dB",
+       "display": "-2.0 dB"
+      },
+      {
+       "id": "sparkle",
+       "name": "Sparkle 9 kHz",
+       "value": 2.0,
+       "min": -12,
+       "max": 12,
+       "unit": "dB",
+       "display": "2.0 dB"
+      }
+     ]
+    },
+    {
+     "id": "echo",
+     "type": "delay",
+     "name": "Tape echo",
+     "enabled": true,
+     "params": [
+      {
+       "id": "time",
+       "name": "Time",
+       "value": 0.5625,
+       "min": 0.05,
+       "max": 2,
+       "unit": "s",
+       "display": "dotted 1/8"
+      },
+      {
+       "id": "repeats",
+       "name": "Repeats",
+       "value": 4,
+       "min": 1,
+       "max": 8,
+       "unit": "",
+       "display": "4"
+      },
+      {
+       "id": "feedback",
+       "name": "Feedback",
+       "value": 0.62,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.62"
+      },
+      {
+       "id": "wow",
+       "name": "Wow",
+       "value": 3,
+       "min": 0,
+       "max": 10,
+       "unit": "ms",
+       "display": "3 ms"
+      },
+      {
+       "id": "wow_rate",
+       "name": "Wow rate",
+       "value": 0.31,
+       "min": 0.05,
+       "max": 2,
+       "unit": "Hz",
+       "display": "0.31 Hz"
+      }
+     ]
+    },
+    {
+     "id": "breath",
+     "type": "filter",
+     "name": "Breathing filter",
+     "enabled": true,
+     "params": [
+      {
+       "id": "low",
+       "name": "Low",
+       "value": 550,
+       "min": 100,
+       "max": 5000,
+       "unit": "Hz",
+       "display": "550 Hz"
+      },
+      {
+       "id": "high",
+       "name": "High",
+       "value": 4500,
+       "min": 500,
+       "max": 18000,
+       "unit": "Hz",
+       "display": "4500 Hz"
+      },
+      {
+       "id": "period",
+       "name": "Period",
+       "value": 2,
+       "min": 0.5,
+       "max": 8,
+       "unit": "bars",
+       "display": "2 bars"
+      }
+     ]
+    },
+    {
+     "id": "swell",
+     "type": "reverse",
+     "name": "Reverse swell",
+     "enabled": true,
+     "params": [
+      {
+       "id": "mix",
+       "name": "Mix",
+       "value": 0.35,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.35"
+      }
+     ]
+    },
+    {
+     "id": "hall",
+     "type": "reverb",
+     "name": "Hall",
+     "enabled": true,
+     "params": [
+      {
+       "id": "mix",
+       "name": "Mix",
+       "value": 0.3,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.3"
+      }
+     ]
+    },
+    {
+     "id": "shimmer",
+     "type": "shimmer",
+     "name": "Shimmer",
+     "enabled": true,
+     "params": [
+      {
+       "id": "octave",
+       "name": "Octave up",
+       "value": 0.1,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.1"
+      }
+     ]
+    }
+   ],
+   "clips": [
+    {
+     "id": "z0",
+     "name": "Her motif",
+     "start_bar": 2.0,
+     "length_bars": 6.0,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "z1",
+     "name": "Theme",
+     "start_bar": 25.0,
+     "length_bars": 16.0,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "z2",
+     "name": "Theme",
+     "start_bar": 49.0,
+     "length_bars": 8.0,
+     "color": null,
+     "notes": null
+    }
+   ]
+  },
+  {
+   "id": "handpan",
+   "name": "Handpan",
+   "kind": "instrument",
+   "color": "#9fb4ff",
+   "mixer": {
+    "volume_db": -6.0,
+    "pan": -0.2,
+    "mute": false,
+    "solo": false,
+    "sends": {}
+   },
+   "devices": [
+    {
+     "id": "sampler",
+     "type": "sampler",
+     "name": "Celtic handpan",
+     "enabled": true,
+     "params": []
+    },
+    {
+     "id": "echo",
+     "type": "delay",
+     "name": "Ping-pong",
+     "enabled": true,
+     "params": [
+      {
+       "id": "mix",
+       "name": "Mix",
+       "value": 0.25,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.25"
+      }
+     ]
+    },
+    {
+     "id": "hall",
+     "type": "reverb",
+     "name": "Hall",
+     "enabled": true,
+     "params": [
+      {
+       "id": "mix",
+       "name": "Mix",
+       "value": 0.35,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.35"
+      }
+     ]
+    }
+   ],
+   "clips": [
+    {
+     "id": "h1",
+     "name": "Rolls",
+     "start_bar": 25.0,
+     "length_bars": 16.0,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "h2",
+     "name": "Rolls",
+     "start_bar": 49.0,
+     "length_bars": 8.0,
+     "color": null,
+     "notes": null
+    }
+   ]
+  },
+  {
+   "id": "strings",
+   "name": "Strings (cellos + violas)",
+   "kind": "instrument",
+   "color": "#c49ad8",
+   "mixer": {
+    "volume_db": -3.0,
+    "pan": 0.0,
+    "mute": false,
+    "solo": false,
+    "sends": {}
+   },
+   "devices": [
+    {
+     "id": "sampler",
+     "type": "sampler",
+     "name": "VSCO-2 strings, soft",
+     "enabled": true,
+     "params": [
+      {
+       "id": "voices",
+       "name": "Voices",
+       "value": 4,
+       "min": 1,
+       "max": 8,
+       "unit": "",
+       "display": "4"
+      }
+     ]
+    },
+    {
+     "id": "eq",
+     "type": "eq",
+     "name": "Warm",
+     "enabled": true,
+     "params": [
+      {
+       "id": "low_cut",
+       "name": "Low cut",
+       "value": 110,
+       "min": 20,
+       "max": 500,
+       "unit": "Hz",
+       "display": "110 Hz"
+      },
+      {
+       "id": "lowpass",
+       "name": "Low-pass",
+       "value": 3800,
+       "min": 500,
+       "max": 20000,
+       "unit": "Hz",
+       "display": "3800 Hz"
+      }
+     ]
+    },
+    {
+     "id": "hall",
+     "type": "reverb",
+     "name": "Hall",
+     "enabled": true,
+     "params": [
+      {
+       "id": "mix",
+       "name": "Mix",
+       "value": 0.25,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.25"
+      }
+     ]
+    }
+   ],
+   "clips": [
+    {
+     "id": "s1",
+     "name": "Her chords",
+     "start_bar": 4.0,
+     "length_bars": 60.0,
+     "color": null,
+     "notes": null
+    }
+   ]
+  },
+  {
+   "id": "drums",
+   "name": "Tribal kit",
+   "kind": "drum",
+   "color": "#e07a5f",
+   "mixer": {
+    "volume_db": 0.0,
+    "pan": 0.0,
+    "mute": false,
+    "solo": false,
+    "sends": {}
+   },
+   "devices": [
+    {
+     "id": "kit",
+     "type": "drumrack",
+     "name": "VCSL hand drums + toms",
+     "enabled": true,
+     "params": [
+      {
+       "id": "swing",
+       "name": "Swing",
+       "value": 0.08,
+       "min": 0,
+       "max": 0.5,
+       "unit": "",
+       "display": "0.08"
+      }
+     ]
+    },
+    {
+     "id": "orbit",
+     "type": "utility",
+     "name": "Circling percussion",
+     "enabled": true,
+     "params": [
+      {
+       "id": "period",
+       "name": "Turn",
+       "value": 2,
+       "min": 0.5,
+       "max": 8,
+       "unit": "bars",
+       "display": "2 bars"
+      }
+     ]
+    },
+    {
+     "id": "glitch",
+     "type": "glitch",
+     "name": "Glitch fill",
+     "enabled": true,
+     "params": [
+      {
+       "id": "every",
+       "name": "Every",
+       "value": 16,
+       "min": 4,
+       "max": 32,
+       "unit": "bars",
+       "display": "16 bars"
+      },
+      {
+       "id": "gain",
+       "name": "Gain",
+       "value": 0.45,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.45"
+      }
+     ]
+    },
+    {
+     "id": "room",
+     "type": "reverb",
+     "name": "Room",
+     "enabled": true,
+     "params": [
+      {
+       "id": "mix",
+       "name": "Mix",
+       "value": 0.12,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.12"
+      }
+     ]
+    }
+   ],
+   "clips": [
+    {
+     "id": "k1",
+     "name": "intro",
+     "start_bar": 0.0,
+     "length_bars": 8.0,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "k2",
+     "name": "verse",
+     "start_bar": 8.0,
+     "length_bars": 17.0,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "k3",
+     "name": "drop",
+     "start_bar": 25.0,
+     "length_bars": 16.0,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "k4",
+     "name": "verse 2",
+     "start_bar": 41.0,
+     "length_bars": 8.0,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "k5",
+     "name": "drop 2",
+     "start_bar": 49.0,
+     "length_bars": 8.0,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "k6",
+     "name": "outro",
+     "start_bar": 57.0,
+     "length_bars": 8.0,
+     "color": null,
+     "notes": null
+    }
+   ]
+  },
+  {
+   "id": "sub",
+   "name": "Sub bass",
+   "kind": "instrument",
+   "color": "#5a6cff",
+   "mixer": {
+    "volume_db": 0.0,
+    "pan": 0.0,
+    "mute": false,
+    "solo": false,
+    "sends": {}
+   },
+   "devices": [
+    {
+     "id": "synth",
+     "type": "synth",
+     "name": "Sine + harmonics",
+     "enabled": true,
+     "params": [
+      {
+       "id": "h2",
+       "name": "2nd harmonic",
+       "value": 0.32,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.32"
+      },
+      {
+       "id": "h3",
+       "name": "3rd harmonic",
+       "value": 0.1,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.1"
+      },
+      {
+       "id": "glide",
+       "name": "Glide",
+       "value": 70,
+       "min": 0,
+       "max": 300,
+       "unit": "ms",
+       "display": "70 ms"
+      }
+     ]
+    },
+    {
+     "id": "duck",
+     "type": "compressor",
+     "name": "Sidechain (deep drum)",
+     "enabled": true,
+     "params": [
+      {
+       "id": "depth",
+       "name": "Depth",
+       "value": 0.85,
+       "min": 0,
+       "max": 1,
+       "unit": "",
+       "display": "0.85"
+      },
+      {
+       "id": "release",
+       "name": "Release",
+       "value": 50,
+       "min": 5,
+       "max": 500,
+       "unit": "ms",
+       "display": "50 ms"
+      }
+     ]
+    },
+    {
+     "id": "lp",
+     "type": "filter",
+     "name": "Low-pass",
+     "enabled": true,
+     "params": [
+      {
+       "id": "cutoff",
+       "name": "Cutoff",
+       "value": 260,
+       "min": 40,
+       "max": 2000,
+       "unit": "Hz",
+       "display": "260 Hz"
+      }
+     ]
+    }
+   ],
+   "clips": [
+    {
+     "id": "b1",
+     "name": "Roots",
+     "start_bar": 8.0,
+     "length_bars": 17.0,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "b2",
+     "name": "Roots",
+     "start_bar": 25.0,
+     "length_bars": 16.0,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "b3",
+     "name": "Roots",
+     "start_bar": 41.0,
+     "length_bars": 8.0,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "b4",
+     "name": "Roots",
+     "start_bar": 49.0,
+     "length_bars": 8.0,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "b5",
+     "name": "Roots",
+     "start_bar": 57.0,
+     "length_bars": 8.0,
+     "color": null,
+     "notes": null
+    }
+   ]
+  },
+  {
+   "id": "growl",
+   "name": "Growl (contrabass)",
+   "kind": "instrument",
+   "color": "#8a5cf6",
+   "mixer": {
+    "volume_db": -4.0,
+    "pan": 0.0,
+    "mute": false,
+    "solo": false,
+    "sends": {}
+   },
+   "devices": [
+    {
+     "id": "sampler",
+     "type": "sampler",
+     "name": "Contrabass pizz",
+     "enabled": true,
+     "params": []
+    },
+    {
+     "id": "drive",
+     "type": "saturator",
+     "name": "Drive",
+     "enabled": true,
+     "params": [
+      {
+       "id": "drive",
+       "name": "Drive",
+       "value": 3.0,
+       "min": 1,
+       "max": 10,
+       "unit": "",
+       "display": "3.0"
+      }
+     ]
+    },
+    {
+     "id": "sweep",
+     "type": "filter",
+     "name": "Opening sweep",
+     "enabled": true,
+     "params": [
+      {
+       "id": "from",
+       "name": "From",
+       "value": 300,
+       "min": 50,
+       "max": 5000,
+       "unit": "Hz",
+       "display": "300 Hz"
+      },
+      {
+       "id": "to",
+       "name": "To",
+       "value": 2900,
+       "min": 200,
+       "max": 18000,
+       "unit": "Hz",
+       "display": "2900 Hz"
+      },
+      {
+       "id": "time",
+       "name": "Time",
+       "value": 220,
+       "min": 20,
+       "max": 2000,
+       "unit": "ms",
+       "display": "220 ms"
+      }
+     ]
+    }
+   ],
+   "clips": [
+    {
+     "id": "g1",
+     "name": "Stabs",
+     "start_bar": 25.0,
+     "length_bars": 16.0,
+     "color": null,
+     "notes": null
+    },
+    {
+     "id": "g2",
+     "name": "Stabs",
+     "start_bar": 49.0,
+     "length_bars": 8.0,
+     "color": null,
+     "notes": null
+    }
+   ]
+  },
+  {
+   "id": "master",
+   "name": "Master",
+   "kind": "master",
+   "color": "#dddddd",
+   "mixer": {
+    "volume_db": 0.0,
+    "pan": 0.0,
+    "mute": false,
+    "solo": false,
+    "sends": {}
+   },
+   "devices": [
+    {
+     "id": "eq",
+     "type": "eq",
+     "name": "Master EQ",
+     "enabled": true,
+     "params": [
+      {
+       "id": "mono_below",
+       "name": "Mono below",
+       "value": 120,
+       "min": 20,
+       "max": 300,
+       "unit": "Hz",
+       "display": "120 Hz"
+      },
+      {
+       "id": "mud",
+       "name": "320 Hz",
+       "value": -2.0,
+       "min": -12,
+       "max": 12,
+       "unit": "dB",
+       "display": "-2.0 dB"
+      },
+      {
+       "id": "air",
+       "name": "Air 12 kHz",
+       "value": 1.5,
+       "min": -12,
+       "max": 12,
+       "unit": "dB",
+       "display": "1.5 dB"
+      }
+     ]
+    },
+    {
+     "id": "limiter",
+     "type": "limiter",
+     "name": "Loudness",
+     "enabled": true,
+     "params": [
+      {
+       "id": "lufs",
+       "name": "Target",
+       "value": -14,
+       "min": -24,
+       "max": -6,
+       "unit": "LUFS",
+       "display": "-14 LUFS"
+      },
+      {
+       "id": "ceiling",
+       "name": "Ceiling",
+       "value": -1.0,
+       "min": -6,
+       "max": 0,
+       "unit": "dBTP",
+       "display": "-1.0 dBTP"
+      }
+     ]
+    }
+   ],
+   "clips": []
+  }
+ ]
+}

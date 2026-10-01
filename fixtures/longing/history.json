@@ -1,0 +1,211 @@
+{
+ "changelog": [
+  {
+   "version": "3.0",
+   "date": "2026-09-30",
+   "title": "Her vocals arranged end to end; a psychedelic zither",
+   "groups": [
+    {
+     "name": "Changed",
+     "items": [
+      "The whole vocal track is arranged, not just placed. Intro: her final \"D C B A\", reversed, far back; then her first words from take 1 (right) answered by take 2 (left). Verse 1: one intimate voice. Drop 1: the hook, then she returns inside the drop (phrase 3's first half, then her ending). Verse 2 and the last line: doubled with her other take. Drop 2: her emotional peak (\"A A A ... C B\") as the climax.",
+      "Real double-tracking: she sang every line twice, so the second take sits under the first, split left/right at -6 dB, aligned note by note (dynamic time warping, then stretched piece by piece between notes). Same note at the same time: 81-84% (76% when only stretched). Phrase 7's other take turned out to be a different melody (51%), so it stays single.",
+      "Every fragment lands on the chord she originally sang it over (the drops reuse her verse chords bar for bar).",
+      "The zither's space: a tape echo with slow wow, a filter on the echoes that breathes open and shut every two bars, a reverse swell into each phrase, and an octave shimmer. The plucks themselves stay clean."
+     ]
+    },
+    {
+     "name": "Added",
+     "items": [
+      "Vocal tape-stops: her last note before each drop slows to a halt in the stop.",
+      "Reversed vocal pickups: each hook call is sucked in by its own first note, backwards.",
+      "Drop 2: a half-speed (octave-down) shadow of her hook under it."
+     ]
+    },
+    {
+     "name": "Removed",
+     "items": [
+      "The intro chop teasers (her reversed ending and first words do that job now)."
+     ]
+    }
+   ]
+  },
+  {
+   "version": "2.1",
+   "date": "2026-09-30",
+   "title": "History panel and git",
+   "groups": [
+    {
+     "name": "Added",
+     "items": [
+      "The player has a side panel with this changelog and the song's git history (`scripts/aiwaves_export.py` builds it).",
+      "The song is under version control on branch `wip/longing`: script, analysis, stems (LFS), the render (LFS) and the player.",
+      "`scripts/analyze_longing.py` rebuilds her beat grid, chords and vocal chops from the stems; verified identical to the files used.",
+      "`aiwaves/PLAN.md`: the plan for AIWaves, an agent-first DAW with a read-only live view for humans."
+     ]
+    }
+   ]
+  },
+  {
+   "version": "2.0",
+   "date": "2026-09-30",
+   "title": "Zither lead, her chops as the hook",
+   "groups": [
+    {
+     "name": "Changed",
+     "items": [
+      "Lead instrument: the flute is replaced by the dan tranh (Vietnamese zither). Why: a sustained wind fought her sustained voice in the same space; plucks ring and leave room, and the zither is a signature colour of this genre. Short notes are plucked, held notes use the left-hand bend, very long notes use tremolo.",
+      "Form: intro, verse 1, drop 1, verse 2 (phrases 5-6), drop 2, outro (phrases 7-8). Two drops instead of one long one.",
+      "Glitch fills: every 16 bars instead of 8, half a beat instead of a beat, no low thump, at half level. Her vocal stutters are at half level and darker. Why: they hit too hard."
+     ]
+    },
+    {
+     "name": "Added",
+     "items": [
+      "Her vocal chops: 52 single sung notes are cut from her a cappella and tuned exactly to each chord. They form the drops' hook: she calls \"aah - ah - aaah\" and the zither answers. In drop 2 she harmonises herself.",
+      "Handpan rolls the chord tones between the hook and the zither in the drops.",
+      "Intro teasers: two long notes of hers before verse 1.",
+      "A stop and a muffled-to-open filter build before both drops."
+     ]
+    }
+   ]
+  },
+  {
+   "version": "1.1",
+   "date": "2026-09-30",
+   "title": "Strings, a harder drop, motion",
+   "groups": [
+    {
+     "name": "Added",
+     "items": [
+      "A real string section (VSCO-2 cellos and violas) plays her chords under her, voice-led bar to bar. Why: the verses were thin in the middle.",
+      "The shaker, darbuka slaps and bongos circle the listener (one turn every two bars).",
+      "The band opens from muffled to full over the two bars before the drop."
+     ]
+    },
+    {
+     "name": "Changed",
+     "items": [
+      "The verses' drums and bass step back, so the drop jumps +2.4 dB instead of +1.6 dB."
+     ]
+    }
+   ]
+  },
+  {
+   "version": "1.0",
+   "date": "2026-09-30",
+   "title": "Rebuilt around her",
+   "groups": [
+    {
+     "name": "Changed",
+     "items": [
+      "Tempo 140 → 80 BPM, her own tempo. Each phrase is fitted onto the bar grid tracked from the piano she sang to (stretch 0.970–1.007, inaudible). Why: at 140 her phrases floated across the beat.",
+      "Harmony: the bass and lead follow her chords bar by bar (mostly Am–G, with F and Em), read from her piano part.",
+      "Drums: glitch-hop backbeat (snare on 2 and 4), lighter under her, full in the drop."
+     ]
+    },
+    {
+     "name": "Added",
+     "items": [
+      "The flute answers only in the gaps she leaves; the drop's flute theme is built from her own melody (\"A A G D E\").",
+      "Her first note, frozen into a pad, opens the song."
+     ]
+    }
+   ]
+  },
+  {
+   "version": "0.3",
+   "date": "2026-09-30",
+   "title": "Her voice, psychedelic",
+   "groups": [
+    {
+     "name": "Added",
+     "items": [
+      "Around her clear dry voice, made only from her own voice: detuned chorus doubles, a reverse-reverb swell into every phrase, frozen clouds circling the head after each phrase, dotted-8th echo throws, glitch stutters on two phrase ends, an octave-and-fifth shimmer."
+     ]
+    }
+   ]
+  },
+  {
+   "version": "0.2",
+   "date": "2026-09-30",
+   "title": "Bass and sound design",
+   "groups": [
+    {
+     "name": "Added",
+     "items": [
+      "Mono sine sub on the chord roots with glides, ducking under every deep drum hit; contrabass growl stabs; half-time snare; Tipper-style glitch fills; dotted-8th ping-pong on the flute."
+     ]
+    }
+   ]
+  },
+  {
+   "version": "0.1",
+   "date": "2026-09-30",
+   "title": "Her voice arrives",
+   "groups": [
+    {
+     "name": "Added",
+     "items": [
+      "Madam Snowflake's \"Longing\" a cappella over flute and tribal drums (140 BPM). The music moved to A minor to match her; every pitched drum is tuned to the key."
+     ]
+    }
+   ]
+  }
+ ],
+ "commits": [
+  {
+   "hash": "3baac33a847d7604b8f2901a21c56454837a1a1e",
+   "short": "3baac33",
+   "date": "2026-09-30T20:11:34-06:00",
+   "author": "Hermes Agent",
+   "subject": "Longing v3.0: vocals arranged end to end, note-aligned doubles, psychedelic zither",
+   "body": "Her whole performance is cut at its natural seams and re-arranged across the\nsong (reversed ghost, take-1/take-2 call and answer, lines inside the drops,\nher peak as the climax), with real double-tracking aligned note by note by\ndynamic time warping. Vocal tape-stops into the drops, reversed pickups, a\nhalf-speed shadow in drop 2. The zither gets a tape echo with wow, a breathing\nfilter on its echoes, reverse swells and an octave shimmer.",
+   "files": [
+    "samples/vocals_new/longing/CHANGELOG.md",
+    "samples/vocals_new/longing/longing_song.map.js",
+    "samples/vocals_new/longing/longing_song.wav",
+    "scripts/make_longing_song.py"
+   ],
+   "added": 259,
+   "removed": 23
+  },
+  {
+   "hash": "0f3aa1f47c952ad7e76ddfb1cb6286d991b86125",
+   "short": "0f3aa1f",
+   "date": "2026-09-30T19:50:00-06:00",
+   "author": "Hermes Agent",
+   "subject": "Player: fix the git panel's file list (a raw newline broke the script)",
+   "body": "",
+   "files": [
+    "samples/vocals_new/longing/player.html"
+   ],
+   "added": 1,
+   "removed": 2
+  },
+  {
+   "hash": "7d87aa86f3a2b8f520ae7c1b95ffca36d83ec1d1",
+   "short": "7d87aa8",
+   "date": "2026-09-30T19:49:23-06:00",
+   "author": "Hermes Agent",
+   "subject": "Longing v2.1: song, analysis, player with changelog/git panel",
+   "body": "Psychedelic world bass built around Madam Snowflake's a cappella \"Longing\"\n(ccMixter, CC BY 3.0): dan tranh lead, handpan, her vocal-chop hook, strings,\ntuned tribal kit, sub + growl, at her own tempo (80 BPM) and chords (A minor).\n\n- scripts/make_longing_song.py renders the song; scripts/analyze_longing.py\n  rebuilds her beat grid, chords and chops (verified identical).\n- The player gets a side panel (changelog + git history) fed by\n  scripts/aiwaves_export.py.\n- aiwaves/PLAN.md: plan for an agent-first DAW (plan only).\n- Stems and the render are stored with LFS; instrument sample libraries are not\n  committed (sources in samples/LICENSES.md).",
+   "files": [
+    "samples/vocals_new/longing/CHANGELOG.md",
+    "samples/vocals_new/longing/chops.json",
+    "samples/vocals_new/longing/grid.json",
+    "samples/vocals_new/longing/longing pell dry.flac",
+    "samples/vocals_new/longing/longing piano dry.flac",
+    "samples/vocals_new/longing/longing_song.map.js",
+    "samples/vocals_new/longing/longing_song.wav",
+    "samples/vocals_new/longing/phrases.json",
+    "samples/vocals_new/longing/player.html",
+    "scripts/analyze_longing.py",
+    "scripts/make_longing_song.py"
+   ],
+   "added": 1737,
+   "removed": 0
+  }
+ ],
+ "branch": "wip/longing"
+}
