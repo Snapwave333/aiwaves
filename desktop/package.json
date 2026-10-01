@@ -17,6 +17,7 @@
   "build": {
     "appId": "dev.aiwaves.desktop",
     "productName": "AIWaves",
+    "electronDist": "node_modules/electron/dist",
     "directories": {
       "output": "dist"
     },

@@ -5,3 +5,4 @@ shots/
 sfx_cache/
 *.log
 live_bridge.py
+frames_1080/

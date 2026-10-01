@@ -2,6 +2,8 @@
 // token, waits until it is healthy, and shows the read-only workspace in a native window.
 // Closing the app stops the server. Agents on this machine drive the same server through the
 // `aiwaves` CLI with the token written to <userData>/agent-token.txt (menu: Copy agent token).
+// The menu is the right-click menu (the window has no OS title bar). The opening animation can be
+// turned off there ("Play intro on launch"), with --no-intro, or with AIWAVES_NO_INTRO=1.
 
 const { app, BrowserWindow, Menu, clipboard, dialog, session, shell } = require('electron');
 const { spawn } = require('node:child_process');
@@ -31,6 +33,34 @@ let server = null;
 let win = null;
 let log = null;
 const token = crypto.randomBytes(24).toString('hex');
+
+/** <userData>/settings.json; anything unreadable or of the wrong type falls back to the default. */
+const SETTINGS_FILE = () => path.join(app.getPath('userData'), 'settings.json');
+function readSettings() {
+  let v = {};
+  try { v = JSON.parse(fs.readFileSync(SETTINGS_FILE(), 'utf8')) || {}; } catch { /* first run or unreadable */ }
+  return { playIntro: typeof v.playIntro === 'boolean' ? v.playIntro : true };
+}
+function writeSettings(patch) {
+  fs.writeFileSync(SETTINGS_FILE(), `${JSON.stringify({ ...readSettings(), ...patch }, null, 2)}
+`);
+}
+const introWanted = () =>
+  readSettings().playIntro && !process.argv.includes('--no-intro') && process.env.AIWAVES_NO_INTRO !== '1';
+
+const SPLASH = path.join(__dirname, 'splash', 'index.html');
+/** Play the opening animation; resolves when it ends or is skipped (or after 20 s, or at once if it is missing). */
+async function playSplash() {
+  if (!fs.existsSync(SPLASH)) return;
+  const done = new Promise((resolve) => {
+    const finish = () => { clearTimeout(timer); win.webContents.off('did-navigate-in-page', onNav); resolve(); };
+    const onNav = (_e, url) => { if (url.endsWith('#done')) finish(); };
+    const timer = setTimeout(finish, 20000);
+    win.webContents.on('did-navigate-in-page', onNav);
+  });
+  await win.loadFile(SPLASH);
+  await done;
+}
 
 function freePort() {
   return new Promise((resolve, reject) => {
@@ -105,7 +135,7 @@ async function startServer() {
   throw new Error('The AIWaves server did not become healthy within 15 s (see logs/server.log).');
 }
 
-function menu(data) {
+function menu(data, origin) {
   return Menu.buildFromTemplate([
     {
       label: 'AIWaves',
@@ -113,6 +143,14 @@ function menu(data) {
         { label: 'Copy agent token', click: () => clipboard.writeText(token) },
         { label: 'Open projects folder', click: () => shell.openPath(data) },
         { label: 'Open logs folder', click: () => shell.openPath(path.join(app.getPath('userData'), 'logs')) },
+        { type: 'separator' },
+        {
+          label: 'Play intro on launch',
+          type: 'checkbox',
+          checked: readSettings().playIntro,
+          click: (item) => writeSettings({ playIntro: item.checked }),
+        },
+        { label: 'Replay intro', click: async () => { await playSplash(); await win.loadURL(`${origin}/`); } },
         { type: 'separator' },
         { role: 'quit' },
       ],
@@ -166,14 +204,9 @@ async function createWindow() {
   });
   win.once('ready-to-show', () => win.show());
   // the opening animation plays while the server starts; whichever finishes last opens the workspace
-  const splashDone = new Promise((resolve) => {
-    const onNav = (_e, url) => { if (url.endsWith('#done')) { win.webContents.off('did-navigate-in-page', onNav); resolve(); } };
-    win.webContents.on('did-navigate-in-page', onNav);
-    setTimeout(resolve, 20000);
-  });
-  const splash = path.join(__dirname, 'splash', 'index.html');
-  if (fs.existsSync(splash)) await win.loadFile(splash);
   const serverStart = startServer();
+  serverStart.catch(() => {});                        // reported below, once the splash is done
+  const splashDone = introWanted() ? playSplash() : Promise.resolve();
   let started;
   try {
     await splashDone;
@@ -187,7 +220,13 @@ async function createWindow() {
     return;
   }
   const origin = `http://127.0.0.1:${started.port}`;
-  Menu.setApplicationMenu(menu(started.data));
+  const appMenu = menu(started.data, origin);
+  Menu.setApplicationMenu(appMenu);
+  // no OS title bar, so the menu lives on right-click (with Copy when text is selected)
+  win.webContents.on('context-menu', (_e, params) => {
+    const items = params.selectionText ? [{ role: 'copy' }, { type: 'separator' }] : [];
+    Menu.buildFromTemplate([...items, ...appMenu.items.map((m) => ({ label: m.label, submenu: m.submenu }))]).popup({ window: win });
+  });
   // a crashed page reloads instead of leaving a dead window
   win.webContents.on('render-process-gone', (_e, details) => {
     log?.write(`[desktop] page process gone (${details.reason}); reloading

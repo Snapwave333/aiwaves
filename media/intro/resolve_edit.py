@@ -4,7 +4,7 @@
 Builds project "AIWaves Intro": the Blender frames (frames/f_0001.png ...) + the sound design
 (intro_sfx.wav) on one timeline; a filmic grade (CDL); a Fusion composition on the clip for soft
 glow (the red eyes and edges bloom), fine film grain and a subtle vignette; renders
-aiwaves_intro_final.mp4 (H.264 + AAC) next to this script; saves the project.
+aiwaves_intro_resolve.mp4 (H.264 + AAC) next to this script; saves the project.
 
 Runs two ways:
   - inside Resolve: Workspace > Scripts > AIWaves Intro Edit (works in the free edition)
@@ -17,9 +17,9 @@ import sys
 import time
 
 HERE = r"C:\Users\chrom\Desktop\aiwaves\media\intro"
-FRAMES = os.path.join(HERE, "frames")
+FRAMES = os.path.join(HERE, "frames_1080")
 AUDIO = os.path.join(HERE, "intro_sfx.wav")
-OUT_NAME = "aiwaves_intro_final"
+OUT_NAME = "aiwaves_intro_resolve"
 PROJECT = "AIWaves Intro"
 LOG = os.path.join(HERE, "resolve_edit.log")
 
@@ -58,7 +58,7 @@ def main():
     if not proj:
         log("ERROR: cannot create or load the project")
         return 1
-    for k, v in (("timelineFrameRate", "30"), ("timelineResolutionWidth", "1280"), ("timelineResolutionHeight", "720"),
+    for k, v in (("timelineFrameRate", "30"), ("timelineResolutionWidth", "1920"), ("timelineResolutionHeight", "1080"),
                  ("timelinePlaybackFrameRate", "30")):
         proj.SetSetting(k, v)
     pool = proj.GetMediaPool()
@@ -79,9 +79,9 @@ def main():
     pool.AppendToTimeline([{"mediaPoolItem": aud[0], "trackIndex": 1, "mediaType": 2}])
     item = tl.GetItemListInTrack("video", 1)[0]
     log(f"timeline: {tl.GetName()}, {tl.GetEndFrame() - tl.GetStartFrame()} frames")
-    # grade: a little lift in contrast and density, cooler shadows, slightly richer colour
-    ok = item.SetCDL({"NodeIndex": "1", "Slope": "1.06 1.02 1.00", "Offset": "-0.012 -0.008 -0.002",
-                      "Power": "1.04 1.04 1.03", "Saturation": "1.10"})
+    # grade: the same look as post.py: deeper contrast, a neutral white studio, cooler shadows
+    ok = item.SetCDL({"NodeIndex": "1", "Slope": "1.03 1.03 1.04", "Offset": "-0.010 -0.008 -0.004",
+                      "Power": "1.06 1.06 1.05", "Saturation": "1.06"})
     log(f"grade (CDL): {ok}")
     # post: soft glow -> film grain -> vignette, in Fusion
     comp = item.AddFusionComp()
@@ -91,8 +91,8 @@ def main():
         glow = comp.AddTool("SoftGlow", 1, 0)
         glow.Input = mi.Output
         glow.Threshold = 0.82
-        glow.Gain = 0.9
-        glow.XGlowSize = 12
+        glow.Gain = 0.5
+        glow.XGlowSize = 18
         grain = comp.AddTool("FilmGrain", 2, 0)
         grain.Input = glow.Output
         grain.Strength = 0.12
@@ -104,7 +104,7 @@ def main():
         vig_mask.Invert = 1
         vig = comp.AddTool("BrightnessContrast", 3, 0)
         vig.Input = grain.Output
-        vig.Gain = 0.82
+        vig.Gain = 0.86
         vig.EffectMask = vig_mask.Mask
         mo.Input = vig.Output
         log("post (Fusion): soft glow, film grain, vignette")
@@ -113,7 +113,7 @@ def main():
     # render
     proj.SetCurrentRenderFormatAndCodec("mp4", "H264")
     proj.SetRenderSettings({"SelectAllFrames": True, "TargetDir": HERE, "CustomName": OUT_NAME,
-                            "ExportVideo": True, "ExportAudio": True, "FormatWidth": 1280, "FormatHeight": 720,
+                            "ExportVideo": True, "ExportAudio": True, "FormatWidth": 1920, "FormatHeight": 1080,
                             "FrameRate": "30"})
     proj.DeleteAllRenderJobs()
     job = proj.AddRenderJob()
@@ -132,5 +132,5 @@ def main():
     return 0
 
 
-if __name__ == "__main__":
-    main()
+# Resolve's Scripts menu does not run scripts as __main__: always run
+main()
