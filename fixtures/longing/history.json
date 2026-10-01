@@ -1,6 +1,49 @@
 {
  "changelog": [
   {
+   "version": "4.1",
+   "date": "2026-09-30",
+   "title": "Drum and bass detail",
+   "groups": [
+    {
+     "name": "Added",
+     "items": [
+      "Ghost notes: soft snare taps between the main hits wherever the groove plays.",
+      "Drops: offbeat hi-hats (an open hat every 4th bar), darbuka flams, and a crash on each drop's downbeat. The drops gained 3 dB of top end above 6 kHz.",
+      "Phrase-aware fills: the 4th bar of each phrase alternates a bongo run with a tom cascade (high to low, ending on the deep drum)."
+     ]
+    },
+    {
+     "name": "Changed",
+     "items": [
+      "The bass varies: the bounce alternates octave and fifth, and every 4th bar it plays a syncopated pattern locked to the toms' 3-3-2."
+     ]
+    }
+   ]
+  },
+  {
+   "version": "4.0",
+   "date": "2026-09-30",
+   "title": "No uncut singing: alien and spiritual",
+   "groups": [
+    {
+     "name": "Changed",
+     "items": [
+      "Every line is cut into breathing pieces: each of her notes found (pitch + level), passing notes under 0.55 s dropped, each kept note sounds for 3/4 of its length with a soft 120 ms fade, then a breath. Pieces stay exactly where she sang them, so they still land on her chords and beat. 51 pieces, the longest 3.1 s; her doubles are cut with the same mask.",
+      "Each piece keeps its whole line's level (no per-piece normalising), so her dynamics survive the cuts."
+     ]
+    },
+    {
+     "name": "Added",
+     "items": [
+      "Alien: every breath holds a frozen cloud of the note she just sang, drifting around the head (-10 dB under her).",
+      "Spiritual: an octave-down \"monk\" (-16 dB) and an octave-up \"angel\" (-18 dB) ghost of her voice.",
+      "A choir under the intro, verses and outro: her longest A and E stretched about 8x (Paulstretch) into a breathing pad, with an octave-down copy."
+     ]
+    }
+   ]
+  },
+  {
    "version": "3.0",
    "date": "2026-09-30",
    "title": "Her vocals arranged end to end; a psychedelic zither",
@@ -154,6 +197,52 @@
   }
  ],
  "commits": [
+  {
+   "hash": "7ed4f1a5e1b4c23186860ea1c145d34204630593",
+   "short": "7ed4f1a",
+   "date": "2026-09-30T20:34:58-06:00",
+   "author": "Hermes Agent",
+   "subject": "Longing v4.1: ghost notes, hats, flams, crashes, alternating fills, bass variations",
+   "body": "Also: the AIWaves export now matches its own build log (drums -3 dB).",
+   "files": [
+    "samples/vocals_new/longing/CHANGELOG.md",
+    "samples/vocals_new/longing/longing_song.map.js",
+    "samples/vocals_new/longing/longing_song.wav",
+    "scripts/make_longing_song.py"
+   ],
+   "added": 48,
+   "removed": 7
+  },
+  {
+   "hash": "436eb446a3ef4442c550ad5d5e9e931f390409cf",
+   "short": "436eb44",
+   "date": "2026-09-30T20:26:28-06:00",
+   "author": "Hermes Agent",
+   "subject": "analyze_longing: also rebuild notes.json (where the lines are cut); verified identical",
+   "body": "",
+   "files": [
+    "scripts/analyze_longing.py"
+   ],
+   "added": 40,
+   "removed": 1
+  },
+  {
+   "hash": "cf98f55b16f381a3cee22147b55e88defd0cc4a5",
+   "short": "cf98f55",
+   "date": "2026-09-30T20:25:11-06:00",
+   "author": "Hermes Agent",
+   "subject": "Longing v4.0: every line cut into breathing pieces; alien clouds, monk/angel ghosts, voice choir",
+   "body": "",
+   "files": [
+    "samples/vocals_new/longing/CHANGELOG.md",
+    "samples/vocals_new/longing/longing_song.map.js",
+    "samples/vocals_new/longing/longing_song.wav",
+    "samples/vocals_new/longing/notes.json",
+    "scripts/make_longing_song.py"
+   ],
+   "added": 524,
+   "removed": 53
+  },
   {
    "hash": "3baac33a847d7604b8f2901a21c56454837a1a1e",
    "short": "3baac33",

@@ -97,7 +97,7 @@ Status: plan only (2026-09-30). Nothing below is built yet except the seed (§7)
 | 1. Song graph + CLI | JSON song format; `aiwaves render/analyze/export`; port "Longing" to it bit-identically; event log | 2-3 weeks |
 | 2. Read-only workspace v1 | Arrangement + mixer + device views fed by the event log; animated knobs; replay | 3-4 weeks |
 | 3. Devices + automation | Ableton-equivalent core effects as parametrised devices; automation lanes; racks/macros; sidechain routing | 4-6 weeks |
-| 4. Live engine | streaming preview, per-track render cache, session view with clip launching | 4-6 weeks |
+| 4. Live engine | streaming preview, per-track render cache, session view with clip launching. **LMMS as a render engine** (Eli's suggestion): project.json -> LMMS .mmp -> `lmms -r` via the existing daw-cli, so instruments/effects/plugins come from a real DAW instead of being written from scratch | 4-6 weeks |
 | 5. MCP + multi-agent | MCP server; several agents on one project (roles: arranger, mixer, sound designer) with locking | 2-3 weeks |
 | 6. Polish | presets/browser with licence filter, stems export, follow actions, plugin devices | ongoing |
 
