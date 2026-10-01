@@ -86,3 +86,66 @@
   font-size: var(--aw-fs-2xs);
   padding: var(--sp-1);
 }
+
+// --- compact: one-row chips with mini knobs, wrapping into as many rows as the panel has ---------
+
+.chain.mini-chain {
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: flex-start;
+  gap: var(--sp-1) var(--sp-half);
+  padding: var(--sp-1) var(--sp-2) var(--sp-3);
+
+  .chain-arrow {
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+  }
+}
+
+// no clip-path here: a mini knob's value tag and glow have to show past the chip's edge
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  height: 30px;
+  padding: 0 var(--sp-2) 0 var(--sp-1);
+  border: 1px solid var(--aw-line);
+  border-left: 2px solid var(--dev, var(--aw-accent));
+  border-radius: var(--aw-radius-xs);
+  background: linear-gradient(100deg, var(--aw-raised) 30%, var(--aw-panel-2));
+  transition:
+    opacity var(--aw-med) var(--aw-ease),
+    border-color var(--aw-fast) var(--aw-ease);
+
+  &.off {
+    opacity: 0.5;
+  }
+
+  &.touched:not(.glow) {
+    border-color: var(--aw-signal);
+    border-left-color: var(--dev, var(--aw-accent));
+  }
+
+  .light-on {
+    flex: none;
+  }
+}
+
+.chip-icon.mat-icon {
+  width: 14px;
+  height: 14px;
+  font-size: 14px;
+  color: var(--aw-dim);
+}
+
+.chip-name {
+  max-width: 120px;
+  margin-right: var(--sp-half);
+  font: 600 var(--aw-fs-2xs) / 1 var(--aw-font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

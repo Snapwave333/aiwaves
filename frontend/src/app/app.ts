@@ -11,6 +11,7 @@ import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { AudioService } from './core/audio.service';
 import { CoverService } from './core/cover.service';
+import { PanelLayout } from './core/panel-layout';
 import { WorkspaceStore } from './core/workspace.store';
 import { PlayerComponent } from './player/player.component';
 import { AppBarComponent } from './shell/app-bar.component';
@@ -44,10 +45,22 @@ import { SidePanelComponent } from './views/side-panel.component';
 })
 export class App {
   protected readonly store = inject(WorkspaceStore);
+  private readonly layout = inject(PanelLayout);
   private readonly audio = inject(AudioService);
   private readonly covers = inject(CoverService);
   protected readonly sheetOpen = signal(true);
   protected readonly demoDismissed = signal(false);
+  /** Compact mixer and devices: the bottom row shrinks to fit them and the arrangement grows. */
+  protected readonly bottomCompact = computed(
+    () => this.layout.compact('mixer') && this.layout.compact('devices'),
+  );
+  /** Every panel in the side sheet compact: the sheet narrows and the arrangement widens. */
+  protected readonly sheetCompact = computed(
+    () =>
+      this.layout.compact('activity') &&
+      this.layout.compact('changelog') &&
+      this.layout.compact('git'),
+  );
 
   constructor() {
     void this.store.init();

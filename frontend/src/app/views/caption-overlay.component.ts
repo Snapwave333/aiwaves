@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { Anim, Animator, CAPTION_MS } from '../core/animator.service';
-import { formatJson, shortTarget } from './format';
+import { Change, describeChange, shortTarget } from './format';
 
 const W = 300;
 /** Approximate caption height, for keeping captions from covering each other. */
@@ -8,6 +8,7 @@ const H = 62;
 
 interface Placed {
   anim: Anim;
+  change: Change | null;
   left: number;
   top: number;
   below: boolean;
@@ -37,8 +38,11 @@ interface Placed {
             c.anim.verb
           }}</span>
           {{ short(c.anim.path) }}
-          @if (c.anim.from !== null || c.anim.to !== null) {
-            <span class="caption-change">{{ fmt(c.anim.from) }} → {{ fmt(c.anim.to) }}</span>
+          @if (c.change; as ch) {
+            <span class="caption-change"
+              >{{ ch.from ?? '' }}{{ ch.from !== null && ch.to !== null ? ' → ' : ''
+              }}{{ ch.to ?? '' }}</span
+            >
           }
         </div>
         <div class="caption-reason">{{ c.anim.reason }}</div>
@@ -49,7 +53,6 @@ interface Placed {
 })
 export class CaptionOverlayComponent {
   private readonly animator = inject(Animator);
-  protected readonly fmt = formatJson;
 
   protected readonly announce = computed(() => {
     const last = this.animator.captions().at(-1);
@@ -88,7 +91,8 @@ export class CaptionOverlayComponent {
         boxTop += below ? H : -H;
       }
       taken.push({ left, top: boxTop });
-      return { anim, left, top: below ? boxTop : boxTop + H, below, fade };
+      const change = describeChange({ ...anim, target: anim.path });
+      return { anim, change, left, top: below ? boxTop : boxTop + H, below, fade };
     });
     return out.reverse();
   });

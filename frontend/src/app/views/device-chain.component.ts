@@ -1,10 +1,12 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { MatCard } from '@angular/material/card';
 import { MatIcon } from '@angular/material/icon';
 import { Animator } from '../core/animator.service';
 import { formatRounded } from '../core/apply';
 import { Param } from '../core/model';
+import { PanelLayout } from '../core/panel-layout';
 import { WorkspaceStore } from '../core/workspace.store';
+import { CompactToggleComponent } from '../ui/compact-toggle.component';
 import { KnobComponent } from '../ui/knob.component';
 
 /** Badge text and Material Symbol per device type (CONTRACT section 3: icon by type). */
@@ -41,8 +43,13 @@ export function typeIcon(type: string): string {
 @Component({
   selector: 'aw-device-chain',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [KnobComponent, MatCard, MatIcon],
-  host: { class: 'panel devices', role: 'region', 'aria-label': 'Device chain' },
+  imports: [KnobComponent, MatCard, MatIcon, CompactToggleComponent],
+  host: {
+    class: 'panel devices',
+    role: 'region',
+    'aria-label': 'Device chain',
+    '[class.compact]': 'compact()',
+  },
   template: `
     @let t = store.selectedTrack();
     <div class="panel-bar">
@@ -53,37 +60,32 @@ export function typeIcon(type: string): string {
           ><span class="swatch" [style.background]="t.color"></span>{{ t.name }}</span
         >
       }
+      <span class="panel-tools"><aw-compact-toggle panel="devices" name="device chain" /></span>
     </div>
-    <div class="chain">
+    <div class="chain" [class.mini-chain]="compact()">
       @if (t) {
         @for (d of t.devices; track d.id; let last = $last) {
           @let dp = 'tracks.' + t.id + '.devices.' + d.id;
-          <mat-card
-            appearance="outlined"
-            class="device"
-            role="group"
-            [style.--dev]="t.color"
-            [attr.data-path]="dp"
-            [class.off]="!d.enabled"
-            [class.glow]="animator.glow(dp)"
-            [class.touched]="animator.glowUnder(dp)"
-            [class.ghost]="store.ghosts().has(dp) || store.ghosts().has('tracks.' + t.id)"
-            [attr.aria-label]="d.name + ' (' + d.type + ')' + (d.enabled ? '' : ', off')"
-          >
-            <header class="device-head">
+          @if (compact()) {
+            <div
+              class="chip"
+              role="group"
+              [style.--dev]="t.color"
+              [attr.data-path]="dp"
+              [class.off]="!d.enabled"
+              [class.glow]="animator.glow(dp)"
+              [class.touched]="animator.glowUnder(dp)"
+              [class.ghost]="store.ghosts().has(dp) || store.ghosts().has('tracks.' + t.id)"
+              [attr.aria-label]="d.name + ' (' + d.type + ')' + (d.enabled ? '' : ', off')"
+            >
               <span
                 class="light light-on"
                 [class.on]="d.enabled"
                 role="img"
                 [attr.aria-label]="d.enabled ? 'On' : 'Off'"
               ></span>
-              <span class="badge" [title]="d.type"
-                ><mat-icon aria-hidden="true">{{ icon(d.type) }}</mat-icon
-                >{{ badge(d.type) }}</span
-              >
-              <span class="device-name" [title]="d.name">{{ d.name }}</span>
-            </header>
-            <div class="device-params">
+              <mat-icon class="chip-icon" aria-hidden="true">{{ icon(d.type) }}</mat-icon>
+              <span class="chip-name" [title]="d.name + ' (' + d.type + ')'">{{ d.name }}</span>
               @for (prm of d.params; track prm.id) {
                 <aw-knob
                   [path]="dp + '.params.' + prm.id"
@@ -93,13 +95,56 @@ export function typeIcon(type: string): string {
                   [max]="prm.max"
                   [display]="prm.display"
                   [format]="formatter(prm)"
+                  [size]="18"
+                  [mini]="true"
                   [color]="t.color"
                 />
-              } @empty {
-                <span class="device-empty">No parameters</span>
               }
             </div>
-          </mat-card>
+          } @else {
+            <mat-card
+              appearance="outlined"
+              class="device"
+              role="group"
+              [style.--dev]="t.color"
+              [attr.data-path]="dp"
+              [class.off]="!d.enabled"
+              [class.glow]="animator.glow(dp)"
+              [class.touched]="animator.glowUnder(dp)"
+              [class.ghost]="store.ghosts().has(dp) || store.ghosts().has('tracks.' + t.id)"
+              [attr.aria-label]="d.name + ' (' + d.type + ')' + (d.enabled ? '' : ', off')"
+            >
+              <header class="device-head">
+                <span
+                  class="light light-on"
+                  [class.on]="d.enabled"
+                  role="img"
+                  [attr.aria-label]="d.enabled ? 'On' : 'Off'"
+                ></span>
+                <span class="badge" [title]="d.type"
+                  ><mat-icon aria-hidden="true">{{ icon(d.type) }}</mat-icon
+                  >{{ badge(d.type) }}</span
+                >
+                <span class="device-name" [title]="d.name">{{ d.name }}</span>
+              </header>
+              <div class="device-params">
+                @for (prm of d.params; track prm.id) {
+                  <aw-knob
+                    [path]="dp + '.params.' + prm.id"
+                    [label]="prm.name"
+                    [value]="prm.value"
+                    [min]="prm.min"
+                    [max]="prm.max"
+                    [display]="prm.display"
+                    [format]="formatter(prm)"
+                    [color]="t.color"
+                  />
+                } @empty {
+                  <span class="device-empty">No parameters</span>
+                }
+              </div>
+            </mat-card>
+          }
           @if (!last) {
             <mat-icon class="chain-arrow" aria-hidden="true">chevron_right</mat-icon>
           }
@@ -119,6 +164,8 @@ export function typeIcon(type: string): string {
 export class DeviceChainComponent {
   protected readonly store = inject(WorkspaceStore);
   protected readonly animator = inject(Animator);
+  private readonly layout = inject(PanelLayout);
+  protected readonly compact = computed(() => this.layout.compact('devices'));
   protected readonly badge = typeBadge;
   protected readonly icon = typeIcon;
   private readonly formatters = new Map<string, (v: number) => string>();

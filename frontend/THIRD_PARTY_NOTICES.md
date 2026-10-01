@@ -13,6 +13,12 @@ contributors. AIWaves removed its NgRx store, ngx-translate and channel dependen
 the app's own audio service, and re-themed it. This credit does not imply endorsement by the
 upstream maintainers.
 
+The player's GLSL visualizer, `src/app/player/visualizer/` (except `audio-energy.ts`, which is
+new), is adapted from CarbonCast IPTV's radio player
+(`libs/portal/radio/feature/src/lib/radio-visualizer/`): the metaball shader, its trail buffer,
+the renderer and the orb choreography. AIWaves drives it from the song's real spectrum instead of a
+synthesised one and colours it from its own palette. Same licence as above.
+
 ```
 Copyright 2020-2021
 

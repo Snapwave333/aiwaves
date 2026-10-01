@@ -56,6 +56,32 @@
   transition: opacity 900ms var(--aw-ease);
 }
 
+// the GLSL visualizer (from CarbonCast's radio player): liquid metaballs lit like alien plasma.
+// Over the vignette (which would dim it to nothing) and under the stage. Screen-blended, so it only
+// ever adds light; softened by the blur into something wet, not plastic.
+.visualizer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%);
+
+  &.off {
+    display: none;
+  }
+}
+
+.visualizer-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: blur(7px) saturate(1.3);
+  opacity: 0.6;
+  transform: scale(1.08);
+}
+
 .vignette {
   position: absolute;
   inset: 0;
@@ -237,6 +263,8 @@
 .song-artist {
   color: var(--aw-dim);
   font-size: var(--aw-fs-xs);
+  // the visualizer can light up right behind it
+  text-shadow: 0 1px 4px var(--aw-ink-dark);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -254,6 +282,7 @@
   margin-right: auto;
   font: var(--aw-fs-2xs) var(--aw-font-mono);
   color: var(--aw-faint);
+  text-shadow: 0 1px 4px var(--aw-ink-dark);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

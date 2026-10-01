@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { Animator, TWEEN_MS } from '../core/animator.service';
+import { PanelId, PanelLayout } from '../core/panel-layout';
 import { WorkspaceStore } from '../core/workspace.store';
 import { longing } from '../testing/fixtures';
-import { formatJson, shortTarget } from './format';
+import { describeChange, formatJson, leafTarget, shortTarget } from './format';
 import { ActivityFeedComponent } from './activity-feed.component';
 import { ArrangementComponent } from './arrangement.component';
 import { DeviceChainComponent } from './device-chain.component';
@@ -13,6 +14,8 @@ const LAST = longing().events.length;
 
 describe('workspace views', () => {
   let store: WorkspaceStore;
+  /** Panels are compact by default; these tests look at the expanded views. */
+  const expand = (...ids: PanelId[]) => ids.forEach((id) => TestBed.inject(PanelLayout).toggle(id));
 
   beforeEach(() => {
     const { project, events } = longing();
@@ -21,9 +24,13 @@ describe('workspace views', () => {
     store.events.set(events);
   });
 
-  afterEach(() => vi.restoreAllMocks());
+  afterEach(() => {
+    vi.restoreAllMocks();
+    localStorage.clear();
+  });
 
   it('device chain renders a knob per param of the selected track, labelled for screen readers', async () => {
+    expand('devices');
     store.selectTrack('zither');
     const f = TestBed.createComponent(DeviceChainComponent);
     await f.whenStable();
@@ -36,6 +43,7 @@ describe('workspace views', () => {
   });
 
   it('a knob animates from `from` while its event is fresh', async () => {
+    expand('devices');
     let clock = 5000;
     vi.spyOn(performance, 'now').mockImplementation(() => clock);
     store.selectTrack('zither');
@@ -57,6 +65,7 @@ describe('workspace views', () => {
   });
 
   it('mixer renders a strip per track with fader, pan and lights', async () => {
+    expand('mixer');
     const f = TestBed.createComponent(MixerComponent);
     await f.whenStable();
     const el = f.nativeElement as HTMLElement;
@@ -152,6 +161,7 @@ describe('workspace views', () => {
   });
 
   it('activity feed lists events newest first and dims the future while replaying', async () => {
+    expand('activity');
     const f = TestBed.createComponent(ActivityFeedComponent);
     await f.whenStable();
     const el = f.nativeElement as HTMLElement;
@@ -170,6 +180,62 @@ describe('workspace views', () => {
     expect(shortTarget('tracks.drums.mixer.volume_db')).toBe('drums › volume_db');
     expect(formatJson(null)).toBe('—');
     expect(formatJson(0.62)).toBe('0.62');
-    expect(formatJson({ audio: 'audio/master.wav' })).toBe('{"audio":"audio/master.wav"}');
+    expect(leafTarget('tracks.zither.devices.echo.params.feedback')).toBe('feedback');
+  });
+
+  it('summarises object values instead of printing raw JSON', () => {
+    // render.done: the file and its length
+    expect(formatJson({ audio: 'audio/master.wav' }, 'render')).toBe('master.wav');
+    expect(
+      describeChange({
+        verb: 'render.done',
+        target: null,
+        from: { audio: 'audio/master.wav', duration_s: 201.4 },
+        to: { audio: 'audio/master.wav', duration_s: 213 },
+      }),
+    ).toEqual({ from: 'master.wav · 3:21', to: 'master.wav · 3:33' });
+    // added objects: their name; a clip also its notes or its bars (1-based, like the arrangement)
+    const device = { id: 'hp', type: 'filter', name: 'High-pass', enabled: true, params: [] };
+    expect(
+      describeChange({
+        verb: 'device.add',
+        target: 'tracks.growl.devices.hp',
+        from: null,
+        to: device,
+      }),
+    ).toEqual({ from: null, to: 'High-pass' });
+    const clip = {
+      id: 'c9',
+      name: 'Hook',
+      start_bar: 8,
+      length_bars: 3.5,
+      color: null,
+      notes: null,
+    };
+    expect(formatJson(clip, 'clip')).toBe('Hook · bars 9–12.5');
+    const notes = [{ start_beat: 0, length_beats: 1, midi: 60, velocity: 1 }];
+    expect(formatJson({ ...clip, notes }, 'clip')).toBe('Hook · 1 note');
+    // removals: "removed <name>", from the captured object or else the target
+    expect(
+      describeChange({
+        verb: 'track.remove',
+        target: 'tracks.flute',
+        from: { name: 'Flute', index: 3 },
+        to: null,
+      }),
+    ).toEqual({ from: 'removed Flute', to: null });
+    expect(
+      describeChange({
+        verb: 'device.remove',
+        target: 'tracks.growl.devices.sweep',
+        from: null,
+        to: null,
+      }),
+    ).toEqual({ from: 'removed sweep', to: null });
+    // long values are ellipsised
+    const long = formatJson('x'.repeat(100));
+    expect(long.length).toBe(40);
+    expect(long.endsWith('…')).toBe(true);
+    expect(describeChange({ verb: 'note', target: null, from: null, to: null })).toBeNull();
   });
 });

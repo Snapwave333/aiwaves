@@ -11,6 +11,7 @@ import { FADER_MAX_DB, FADER_MIN_DB, MeterDirective, faderPos } from './live-sty
   imports: [MeterDirective],
   host: {
     class: 'fader',
+    '[class.mini]': 'mini()',
     '[class.glow]': 'glowing()',
     '[attr.data-path]': 'path()',
     role: 'meter',
@@ -22,11 +23,13 @@ import { FADER_MAX_DB, FADER_MIN_DB, MeterDirective, faderPos } from './live-sty
   },
   template: `
     <div class="fader-body">
-      <div class="fader-scale" aria-hidden="true">
-        @for (m of marks; track m.db) {
-          <span [style.bottom.%]="m.pos * 100">{{ m.db }}</span>
-        }
-      </div>
+      @if (!mini()) {
+        <div class="fader-scale" aria-hidden="true">
+          @for (m of marks; track m.db) {
+            <span [style.bottom.%]="m.pos * 100">{{ m.db }}</span>
+          }
+        </div>
+      }
       <div class="fader-slot">
         <div class="fader-fill" [style.height.%]="pos() * 100"></div>
         <div class="fader-cap" [style.bottom.%]="pos() * 100"></div>
@@ -46,6 +49,8 @@ export class FaderComponent {
   readonly db = input.required<number>();
   /** The track whose level the meter shows. */
   readonly track = input.required<Track>();
+  /** Compact mixer: no dB scale, a shorter slot. */
+  readonly mini = input(false);
 
   protected readonly minDb = FADER_MIN_DB;
   protected readonly maxDb = FADER_MAX_DB;

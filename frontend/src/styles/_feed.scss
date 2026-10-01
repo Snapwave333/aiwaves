@@ -285,3 +285,194 @@
   color: var(--aw-text);
   font-size: var(--aw-fs-sm);
 }
+
+// --- compact feed: one line per event (agent · verb · target · from → to); the reason shows on
+// hover, and opens under the line an agent is animating right now -------------------------------
+
+.feed-line {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 3px var(--sp-2) 3px var(--sp-3);
+  text-align: left;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--aw-line-soft);
+  border-left: 3px solid transparent;
+  transition: background var(--aw-fast) var(--aw-ease);
+
+  &:hover {
+    background: var(--aw-raised);
+  }
+
+  &.current {
+    border-left-color: var(--aw-accent);
+  }
+
+  &.hot {
+    background: var(--aw-signal-soft);
+    border-left-color: var(--aw-signal);
+  }
+
+  &.future {
+    opacity: 0.4;
+  }
+
+  &.hot .fl-reason,
+  &:focus-visible .fl-reason {
+    display: block;
+  }
+}
+
+.fl-line {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-width: 0;
+  white-space: nowrap;
+  font-size: var(--aw-fs-2xs);
+
+  .fi-verb {
+    flex: none;
+  }
+}
+
+.fl-agent {
+  flex: none;
+  color: var(--aw-violet-text);
+  font-weight: 600;
+
+  &::after {
+    content: '·';
+    margin-left: var(--sp-1);
+    color: var(--aw-faint);
+  }
+}
+
+.fl-target,
+.fl-change {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--aw-font-mono);
+
+  &::before {
+    content: '·';
+    margin-right: var(--sp-1);
+    color: var(--aw-faint);
+  }
+}
+
+.fl-target {
+  flex: 0 1 auto;
+  color: var(--aw-text);
+}
+
+.fl-change {
+  flex: 1 1 0;
+  color: var(--aw-dim);
+
+  .to {
+    color: var(--aw-accent);
+  }
+}
+
+.fl-reason {
+  display: none;
+  color: var(--aw-dim);
+  font-size: var(--aw-fs-2xs);
+}
+
+// --- compact changelog and git: one line per version / commit, click to expand ----------------
+
+.side {
+  position: relative;
+}
+
+.side-tools {
+  position: absolute;
+  top: 2px;
+  right: var(--sp-1);
+  z-index: 2;
+}
+
+.cl-line,
+.commit.commit-line {
+  > summary {
+    display: flex;
+    align-items: baseline;
+    gap: var(--sp-2);
+    padding: 5px 0;
+    cursor: pointer;
+    list-style: none;
+    white-space: nowrap;
+
+    &::before {
+      content: '▸';
+      flex: none;
+      color: var(--aw-faint);
+      transition: transform var(--aw-fast) var(--aw-ease);
+    }
+  }
+
+  &[open] > summary::before {
+    transform: rotate(90deg);
+  }
+}
+
+.cl-line {
+  border-bottom: 1px solid var(--aw-line-soft);
+
+  .cl-ver {
+    flex: none;
+  }
+
+  &.current .cl-ver {
+    background: var(--aw-accent);
+    color: var(--mat-sys-on-primary);
+  }
+}
+
+.cl-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font: 500 var(--aw-fs-sm) / 1.3 var(--aw-font-display);
+}
+
+.cl-detail {
+  padding: 0 0 var(--sp-2) var(--sp-4);
+
+  h4 {
+    margin: var(--sp-2) 0 var(--sp-half);
+    font: 600 var(--aw-fs-2xs) / 1.2 var(--aw-font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--aw-dim);
+  }
+
+  ul {
+    margin: 0;
+    padding-left: var(--sp-4);
+    color: var(--aw-dim);
+  }
+
+  li {
+    margin: var(--sp-half) 0;
+  }
+}
+
+.commit.commit-line {
+  padding: 0;
+
+  > summary {
+    padding: 4px 0;
+  }
+
+  .subject {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

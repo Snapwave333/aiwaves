@@ -19,6 +19,8 @@ import { isProject, sanitizeProject } from './validate';
 
 export const REPLAY_STEP_MS = 1500;
 const BACKEND_RECHECK_MS = 15_000;
+/** Live events after which `/history` has something new. */
+const HISTORY_VERBS: ReadonlySet<string> = new Set(['version.tag', 'render.done']);
 
 /**
  * All workspace state. Data (project, events, history) comes only from the DataSource; everything
@@ -244,6 +246,11 @@ export class WorkspaceStore {
       const fresh = await this.source.project(this.projectId);
       if (isProject(fresh) && fresh.version >= (this.base()?.version ?? 0))
         this.base.set(sanitizeProject(fresh));
+    }
+    // a new version or render means a new changelog entry / commit: the side panel shows it
+    if (batch.some((e) => HISTORY_VERBS.has(e.verb)) && this.source) {
+      const history = await this.source.history(this.projectId).catch(() => null);
+      if (history) this.history.set(history);
     }
   }
 }

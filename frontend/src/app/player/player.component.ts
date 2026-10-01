@@ -2,7 +2,8 @@
 // MIT licence: see THIRD_PARTY_NOTICES.md) and re-themed for AIWaves. Changes from the original:
 // no NgRx store, ngx-translate or channel switching; no audio element of its own (it drives the
 // app's one AudioService); the song's readouts (bar.beat, BPM, key, section, chord, version)
-// live here; the cover art, its dominant colour and a hexagonal spectrum ring are new.
+// live here; the cover art, its dominant colour and a hexagonal spectrum ring are new. The GLSL
+// visualizer behind it comes from CarbonCast's radio player (see visualizer/).
 import {
   ChangeDetectionStrategy,
   Component,
@@ -31,6 +32,7 @@ import { formatClock } from '../core/time';
 import { WorkspaceStore } from '../core/workspace.store';
 import { extractDominantColor } from './extract-color';
 import { RingPainter } from './ring-painter';
+import { VisualizerComponent } from './visualizer/visualizer.component';
 
 const STATUS_TEXT: Record<PlayerStatus, string> = {
   idle: 'No audio',
@@ -46,7 +48,16 @@ const STATUS_TEXT: Record<PlayerStatus, string> = {
 @Component({
   selector: 'aw-player',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatButton, MatFabButton, MatIconButton, MatIcon, MatSlider, MatSliderThumb, MatTooltip],
+  imports: [
+    MatButton,
+    MatFabButton,
+    MatIconButton,
+    MatIcon,
+    MatSlider,
+    MatSliderThumb,
+    MatTooltip,
+    VisualizerComponent,
+  ],
   host: {
     class: 'player',
     role: 'region',
@@ -60,6 +71,9 @@ const STATUS_TEXT: Record<PlayerStatus, string> = {
         <div class="backdrop" aria-hidden="true" [style.background-image]="cssUrl(bd)"></div>
       }
       <div class="vignette" aria-hidden="true"></div>
+      @defer (on idle) {
+        <aw-visualizer />
+      }
 
       <div class="stage">
         <div class="art-block">

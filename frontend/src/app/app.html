@@ -32,7 +32,13 @@
     <span class="banner-text">Connection lost: reconnecting and catching up on missed events…</span>
   </div>
 }
-<main class="workspace" [class.replay-active]="!store.atHead()" [class.sheet-closed]="!sheetOpen()">
+<main
+  class="workspace"
+  [class.replay-active]="!store.atHead()"
+  [class.sheet-closed]="!sheetOpen()"
+  [class.bottom-compact]="bottomCompact()"
+  [class.sheet-compact]="sheetCompact()"
+>
   <aw-player class="area-player" />
   <aw-arrangement class="area-arr" />
   <aw-replay-bar class="area-replay" />

@@ -204,6 +204,16 @@ app-root {
       'replay'
       'bottom';
   }
+
+  // compact mixer and devices: the bottom row is as tall as they are; the arrangement takes the rest
+  &.bottom-compact {
+    grid-template-rows: auto minmax(160px, 1fr) auto auto;
+  }
+
+  // a compact side sheet fits in less width; the arrangement gets it
+  &.sheet-compact {
+    --aw-sheet-w: 296px;
+  }
 }
 
 .area-player {
@@ -281,6 +291,14 @@ app-root {
 
     > .devices {
       min-height: 230px;
+    }
+
+    > .mixer.compact {
+      height: auto;
+    }
+
+    > .devices.compact {
+      min-height: 0;
     }
   }
 }

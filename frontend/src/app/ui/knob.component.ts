@@ -24,6 +24,7 @@ export function arcPath(cx: number, cy: number, r: number, a0: number, a1: numbe
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'knob',
+    '[class.mini]': 'mini()',
     '[class.glow]': 'glowing()',
     '[attr.data-path]': 'path()',
     role: 'meter',
@@ -40,7 +41,7 @@ export function arcPath(cx: number, cy: number, r: number, a0: number, a1: numbe
       <path class="knob-arc" [attr.d]="arcD()" [style.stroke]="color()" />
       <line class="knob-needle" x1="20" y1="20" [attr.x2]="needle()[0]" [attr.y2]="needle()[1]" />
     </svg>
-    @if (showLabel()) {
+    @if (showLabel() && !mini()) {
       <span class="knob-name">{{ label() }}</span>
     }
     <span class="knob-value">{{ text() }}</span>
@@ -61,6 +62,8 @@ export class KnobComponent {
   readonly size = input(40);
   readonly color = input('var(--accent)');
   readonly showLabel = input(true);
+  /** Compact panels: no label, and the value only shows while the knob glows (or on hover). */
+  readonly mini = input(false);
 
   protected readonly trackD = arcPath(20, 20, 15, START, START + SWEEP);
   protected readonly shown = computed(() => this.animator.value(this.path(), this.value()));

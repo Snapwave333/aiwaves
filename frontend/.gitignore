@@ -45,3 +45,6 @@ Thumbs.db
 
 # demo fixtures copied by scripts/copy-fixtures.mjs
 /public/demo
+
+# verification screenshots
+/screenshots

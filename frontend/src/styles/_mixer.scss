@@ -220,3 +220,151 @@
     display: none;
   }
 }
+
+// --- compact mixer: narrow strips (short name, mini pan, mini fader + meter, M / S dots) ---------
+
+.strips.mini-strips {
+  gap: var(--sp-1);
+  padding: var(--sp-1) var(--sp-2) var(--sp-2);
+}
+
+.mini-strip {
+  flex: 0 0 50px;
+  width: 50px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 0 0 var(--sp-1);
+  @include m.chamfer(var(--aw-cut-sm), var(--aw-line-soft), var(--aw-panel-2));
+  cursor: pointer;
+  transition: background var(--aw-fast) var(--aw-ease);
+
+  &:hover {
+    background-color: var(--aw-raised);
+  }
+
+  &.selected {
+    @include m.chamfer(var(--aw-cut-sm), var(--aw-accent), var(--aw-raised));
+    box-shadow: inset 0 0 10px var(--aw-accent-soft);
+  }
+
+  &.master {
+    margin-left: var(--sp-1);
+    @include m.chamfer(
+      var(--aw-cut-sm),
+      color-mix(in srgb, var(--aw-violet) 50%, transparent),
+      color-mix(in srgb, var(--aw-violet) 10%, var(--aw-panel-2))
+    );
+  }
+
+  &.touched:not(.selected) {
+    @include m.chamfer(var(--aw-cut-sm), var(--aw-signal), var(--aw-panel-2));
+  }
+}
+
+.mini-name {
+  width: 100%;
+  padding: 3px 2px 1px;
+  border-top: 2px solid;
+  font: 600 var(--aw-fs-micro) / 1.2 var(--aw-font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-knobs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.fader.mini {
+  flex: none;
+  height: 62px;
+  min-height: 0;
+
+  .fader-body {
+    gap: 3px;
+  }
+
+  .fader-slot {
+    width: 4px;
+  }
+
+  .fader-cap {
+    left: -4px;
+    width: 12px;
+    height: 5px;
+    margin-bottom: -2.5px;
+  }
+
+  .meter {
+    width: 3px;
+  }
+
+  .fader-value {
+    margin-top: 2px;
+    font-size: var(--aw-fs-micro);
+  }
+}
+
+.mini-lights {
+  display: flex;
+  gap: 5px;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--aw-raised-2);
+  border: 1px solid color-mix(in srgb, var(--aw-faint) 55%, transparent);
+
+  &.dot-m.on {
+    background: var(--aw-mute);
+    border-color: var(--aw-mute);
+    box-shadow: 0 0 5px color-mix(in srgb, var(--aw-mute) 70%, transparent);
+  }
+
+  &.dot-s.on {
+    background: var(--aw-solo);
+    border-color: var(--aw-solo);
+    box-shadow: 0 0 5px color-mix(in srgb, var(--aw-solo) 70%, transparent);
+  }
+}
+
+// a mini knob (compact mixer and devices): no label; its value pops up under it while an agent
+// moves it (or on hover), so the needle itself stays in view
+.knob.mini {
+  position: relative;
+  min-width: 0;
+  padding: 0;
+  gap: 0;
+
+  .knob-value {
+    position: absolute;
+    top: calc(100% + 1px);
+    left: 50%;
+    z-index: 4;
+    transform: translateX(-50%);
+    padding: 0 3px;
+    font-size: var(--aw-fs-micro);
+    line-height: 12px;
+    background: var(--aw-well);
+    border: 1px solid color-mix(in srgb, var(--aw-signal) 60%, var(--aw-line));
+    border-radius: var(--aw-radius-xs);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--aw-fast) var(--aw-ease);
+  }
+
+  &.glow .knob-value,
+  &:hover .knob-value {
+    opacity: 1;
+  }
+}
