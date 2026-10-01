@@ -391,7 +391,8 @@ fn param(p: &Project, path: &str) -> Value {
 #[test]
 fn fixture_state_at_returns_old_values() {
     let (p, events) = fixture();
-    assert_eq!(state_at(&p, &events, 42), p);
+    let last = events.last().map_or(0, |e| e.seq); // the fixture grows with the song
+    assert_eq!(state_at(&p, &events, last), p);
     assert_eq!(param(&state_at(&p, &events, 38), FB), json!(0.62));
     assert_eq!(param(&state_at(&p, &events, 37), FB), json!(0.0));
     let zero = state_at(&p, &events, 0);

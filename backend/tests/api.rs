@@ -11,6 +11,18 @@ use std::time::Duration;
 use tempfile::TempDir;
 use tokio_tungstenite::tungstenite::Message;
 
+/// The fixture's last event seq: the demo keeps growing with the song, so tests count it.
+fn last() -> u64 {
+    std::fs::read_to_string(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../fixtures/longing/events.jsonl"
+    ))
+    .unwrap()
+    .lines()
+    .filter(|l| !l.trim().is_empty())
+    .count() as u64
+}
+
 const TOKEN: &str = "test-token";
 const FB: &str = "tracks.zither.devices.echo.params.feedback";
 
@@ -153,7 +165,7 @@ async fn health_and_project_list() {
     assert_eq!(status, 200);
     assert_eq!(
         list,
-        json!([{ "id": "longing", "title": "Longing", "bpm": 80.0, "key": "A minor", "version": 42, "length_bars": 65 }])
+        json!([{ "id": "longing", "title": "Longing", "bpm": 80.0, "key": "A minor", "version": last(), "length_bars": 65 }])
     );
 }
 
@@ -163,7 +175,7 @@ async fn get_project_and_unknown_project() {
     let (status, p) = s.get("/api/projects/longing").await;
     assert_eq!(status, 200);
     assert_eq!(p["schema"], "aiwaves/project@1");
-    assert_eq!(p["version"], 42);
+    assert_eq!(p["version"], last());
     assert_eq!(p["tracks"].as_array().unwrap().len(), 10);
     let devices: usize = p["tracks"]
         .as_array()
@@ -180,15 +192,20 @@ async fn get_project_and_unknown_project() {
 async fn events_since_and_limit() {
     let s = start().await;
     let (_, all) = s.get("/api/projects/longing/events").await;
-    assert_eq!(all.as_array().unwrap().len(), 42);
-    let (_, tail) = s.get("/api/projects/longing/events?since=40").await;
+    assert_eq!(all.as_array().unwrap().len(), last() as usize);
+    let (_, tail) = s
+        .get(&format!(
+            "/api/projects/longing/events?since={}",
+            last() - 2
+        ))
+        .await;
     let seqs: Vec<u64> = tail
         .as_array()
         .unwrap()
         .iter()
         .map(|e| e["seq"].as_u64().unwrap())
         .collect();
-    assert_eq!(seqs, [41, 42]);
+    assert_eq!(seqs, [last() - 1, last()]);
     let (_, page) = s.get("/api/projects/longing/events?since=10&limit=3").await;
     let seqs: Vec<u64> = page
         .as_array()
@@ -231,7 +248,7 @@ async fn command_is_applied_persisted_and_broadcast() {
     let (mut ws, _) = tokio_tungstenite::connect_async(ws_url).await.unwrap();
     let hello = next_json(&mut ws).await;
     assert_eq!(hello["type"], "hello");
-    assert_eq!(hello["last_seq"], 42);
+    assert_eq!(hello["last_seq"], last());
     assert_eq!(hello["project"]["id"], "longing");
 
     // Anything a viewer sends is ignored.
@@ -249,21 +266,25 @@ async fn command_is_applied_persisted_and_broadcast() {
         )
         .await;
     assert_eq!(status, 201, "{body}");
-    assert_eq!(body["version"], 43);
+    assert_eq!(body["version"], last() + 1);
     let event = &body["event"];
-    assert_eq!(event["seq"], 43);
+    assert_eq!(event["seq"], last() + 1);
     assert_eq!(event["verb"], "param.set");
     assert_eq!(event["from"], 0.62);
     assert_eq!(event["to"], 0.7);
     assert_eq!(event["agent"], "claude");
-    assert_eq!(event["version"], "3.0");
+    assert_eq!(
+        event["version"],
+        last_version(),
+        "a new event belongs to the fixture's latest version"
+    );
     assert!(event["ts"].as_str().unwrap().ends_with('Z'));
 
     let log = s.log_lines();
-    assert_eq!(log.len(), 43);
-    assert_eq!(&log[42], event);
+    assert_eq!(log.len(), last() as usize + 1);
+    assert_eq!(&log[last() as usize], event);
     let disk = s.project_on_disk();
-    assert_eq!(disk["version"], 43);
+    assert_eq!(disk["version"], last() + 1);
     assert_eq!(param(&disk, "zither", "echo", "feedback"), 0.7);
 
     let pushed = next_json(&mut ws).await;
@@ -274,7 +295,7 @@ async fn command_is_applied_persisted_and_broadcast() {
 
     // A restart reads back exactly what was written.
     let reloaded = ProjectHandle::load(&s.project_dir()).unwrap();
-    assert_eq!(reloaded.last_seq(), 43);
+    assert_eq!(reloaded.last_seq(), last() + 1);
     assert_eq!(serde_json::to_value(reloaded.project()).unwrap(), disk);
 }
 
@@ -286,7 +307,7 @@ async fn commands_need_the_token() {
         assert_eq!(status, 401, "{token:?}");
         assert!(body["error"].is_string());
     }
-    assert_eq!(s.log_lines().len(), 42);
+    assert_eq!(s.log_lines().len(), last() as usize);
 }
 
 #[tokio::test]
@@ -320,13 +341,13 @@ async fn invalid_commands_are_400_and_change_nothing() {
             "{body}: {res}"
         );
     }
-    assert_eq!(s.log_lines().len(), 42);
+    assert_eq!(s.log_lines().len(), last() as usize);
     assert_eq!(s.project_on_disk(), before);
     let (status, _) = s.post(set_feedback(json!(0.5), "fine"), Some(TOKEN)).await;
     assert_eq!(status, 201);
     assert_eq!(
         s.log_lines().last().unwrap()["seq"],
-        43,
+        last() + 1,
         "no gaps after rejected commands"
     );
 }
@@ -408,7 +429,9 @@ async fn state_at_returns_old_values() {
     assert_eq!(param(&at37, "zither", "echo", "feedback"), 0.0);
 
     s.post(set_feedback(json!(0.9), "more"), Some(TOKEN)).await;
-    let (_, at42) = s.get("/api/projects/longing/state?at=42").await;
+    let (_, at42) = s
+        .get(&format!("/api/projects/longing/state?at={}", last()))
+        .await;
     assert_eq!(param(&at42, "zither", "echo", "feedback"), 0.62);
     let (_, now) = s.get("/api/projects/longing/state").await;
     assert_eq!(param(&now, "zither", "echo", "feedback"), 0.9);
@@ -473,7 +496,7 @@ async fn cli_set_do_events_and_errors() {
                 ],
             ),
             cli(&s, &["set", "longing", FB, "2", "--reason", "too much"]),
-            cli(&s, &["events", "longing", "--since", "42"]),
+            cli(&s, &["events", "longing", "--since", &last().to_string()]),
         )
     });
     assert!(
@@ -509,7 +532,7 @@ async fn cli_set_do_events_and_errors() {
             .iter()
             .map(|e| e["seq"].as_u64().unwrap())
             .collect::<Vec<_>>(),
-        [43, 44, 45]
+        [last() + 1, last() + 2, last() + 3]
     );
 }
 
@@ -563,10 +586,13 @@ async fn cli_import_events_replays_the_fixture_log() {
         "{}",
         String::from_utf8_lossy(&out.stderr)
     );
-    assert_eq!(String::from_utf8(out.stdout).unwrap().lines().count(), 42);
+    assert_eq!(
+        String::from_utf8(out.stdout).unwrap().lines().count(),
+        last() as usize
+    );
     let (_, p) = s.get("/api/projects/longing").await;
     let (_, original) = s0.get("/api/projects/longing").await;
-    assert_eq!(p["version"], 42);
+    assert_eq!(p["version"], last());
     let ids = |p: &Value| {
         p["tracks"]
             .as_array()

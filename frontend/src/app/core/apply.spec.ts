@@ -13,6 +13,9 @@ import {
 } from './apply';
 import { Project } from './model';
 
+// the demo fixture keeps growing as the song gets new versions: count, don't hard-code
+const LAST = longing().events.length;
+
 const FEEDBACK = 'tracks.lead.devices.echo.params.feedback';
 const param = (p: Project) => p.tracks[0].devices[0].params[0];
 
@@ -129,9 +132,9 @@ describe('stateAt on the Longing build log', () => {
   const { project, events } = longing();
 
   it('the fixture is the state after its last event', () => {
-    expect(project.version).toBe(42);
-    expect(events.length).toBe(42);
-    expect(stateAt(project, events, 42)).toBe(project);
+    expect(project.version).toBe(LAST);
+    expect(events.length).toBe(LAST);
+    expect(stateAt(project, events, LAST)).toBe(project);
   });
 
   it('rewinds bpm, key, params and mixer to before the build', () => {
@@ -155,7 +158,7 @@ describe('stateAt on the Longing build log', () => {
 
   it('replaying forward from seq 0 returns every value to the current state', () => {
     const p0 = stateAt(project, events, 0);
-    const again = stateAt(p0, events, 42);
+    const again = stateAt(p0, events, LAST);
     const values = (p: Project) => ({
       bpm: p.bpm,
       key: p.key,
@@ -165,7 +168,7 @@ describe('stateAt on the Longing build log', () => {
       })),
     });
     expect(values(again)).toEqual(values(project));
-    expect(again.version).toBe(42);
+    expect(again.version).toBe(LAST);
   });
 
   it('ghosts tracks that are only added later', () => {
@@ -173,13 +176,13 @@ describe('stateAt on the Longing build log', () => {
     expect(at20.has('tracks.strings')).toBe(true);
     expect(at20.has('tracks.zither')).toBe(true);
     expect(at20.has('tracks.vocal')).toBe(false);
-    expect(pendingAdds(events, 42).size).toBe(0);
+    expect(pendingAdds(events, LAST).size).toBe(0);
   });
 
   it('knows the song version at each seq', () => {
     expect(versionAt(events, 0)).toBeNull();
     expect(versionAt(events, 17)).toBe('1.0');
-    expect(versionAt(events, 42)).toBe('3.0');
+    expect(versionAt(events, LAST)).toBe(String([...events].reverse().find((e) => e.verb === 'version.tag')!.to));
   });
 });
 

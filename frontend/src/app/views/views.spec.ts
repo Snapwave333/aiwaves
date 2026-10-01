@@ -8,6 +8,9 @@ import { ArrangementComponent } from './arrangement.component';
 import { DeviceChainComponent } from './device-chain.component';
 import { MixerComponent } from './mixer.component';
 
+// the demo fixture keeps growing as the song gets new versions: count, don't hard-code
+const LAST = longing().events.length;
+
 describe('workspace views', () => {
   let store: WorkspaceStore;
 
@@ -82,9 +85,9 @@ describe('workspace views', () => {
     await f.whenStable();
     const el = f.nativeElement as HTMLElement;
     const items = el.querySelectorAll('.feed-item');
-    expect(items.length).toBe(42);
-    expect(items[0].getAttribute('data-seq')).toBe('42');
-    store.seekSeq(40, false);
+    expect(items.length).toBe(LAST);
+    expect(items[0].getAttribute('data-seq')).toBe(String(LAST));
+    store.seekSeq(LAST - 2, false);
     await f.whenStable();
     expect(el.querySelectorAll('.feed-item.future').length).toBe(2);
   });

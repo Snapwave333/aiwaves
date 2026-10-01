@@ -7,6 +7,9 @@ import { LiveHandlers } from './data-source';
 import { AiEvent, Project } from './model';
 import { WorkspaceStore } from './workspace.store';
 
+// the demo fixture keeps growing as the song gets new versions: count, don't hard-code
+const LAST = longing().events.length;
+
 /** A backend that is "up", serving the Longing fixture; the test drives the live socket. */
 function fakeBackend(project: Project, events: AiEvent[]) {
   const fake = {
@@ -54,7 +57,7 @@ describe('WorkspaceStore', () => {
   it('loads the project and events from the live backend', () => {
     expect(store.mode()).toBe('live');
     expect(store.link()).toBe('open');
-    expect(store.lastSeq()).toBe(42);
+    expect(store.lastSeq()).toBe(LAST);
     expect(store.project()!.bpm).toBe(80);
   });
 
@@ -78,19 +81,19 @@ describe('WorkspaceStore', () => {
 
   it('stepping back past the head and returning to it follows live again', () => {
     store.step(-1);
-    expect(store.viewSeq()).toBe(41);
+    expect(store.viewSeq()).toBe(LAST - 1);
     store.step(1);
     expect(store.viewSeq()).toBeNull();
   });
 
   it('applies live events, catching up on any gap via /events?since=', async () => {
-    const e43 = ev(43, 'param.set', 'tracks.zither.devices.echo.params.feedback', 0.62, 0.7);
-    const e44 = ev(44, 'song.set', 'bpm', 80, 82);
+    const e43 = ev(LAST + 1, 'param.set', 'tracks.zither.devices.echo.params.feedback', 0.62, 0.7);
+    const e44 = ev(LAST + 2, 'song.set', 'bpm', 80, 82);
     serverEvents.push(e43, e44);
     backend.handlers!.event(e44);
     await flush();
-    expect(backend.eventsCalls.at(-1)).toBe(42);
-    expect(store.lastSeq()).toBe(44);
+    expect(backend.eventsCalls.at(-1)).toBe(LAST);
+    expect(store.lastSeq()).toBe(LAST + 2);
     const p = store.project()!;
     expect(p.bpm).toBe(82);
     expect(
@@ -101,16 +104,16 @@ describe('WorkspaceStore', () => {
     ).toBe(0.7);
     backend.handlers!.event(e44);
     await flush();
-    expect(store.events().length).toBe(44);
+    expect(store.events().length).toBe(LAST + 2);
   });
 
   it('after a reconnect, hello with a newer last_seq fetches the missed events', async () => {
-    const e43 = ev(43, 'note', null, null, null);
+    const e43 = ev(LAST + 1, 'note', null, null, null);
     serverEvents.push(e43);
-    const newer = { ...store.base()!, version: 43 };
-    backend.handlers!.hello(newer, 43);
+    const newer = { ...store.base()!, version: LAST + 1 };
+    backend.handlers!.hello(newer, LAST + 1);
     await flush();
-    expect(store.events().at(-1)!.seq).toBe(43);
-    expect(store.base()!.version).toBe(43);
+    expect(store.events().at(-1)!.seq).toBe(LAST + 1);
+    expect(store.base()!.version).toBe(LAST + 1);
   });
 });
