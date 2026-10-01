@@ -690,3 +690,34 @@ async fn static_frontend_with_spa_fallback_and_cors() {
         "no Origin, no CORS header"
     );
 }
+
+/// The synth engine is reachable through the CLI. Listing presets needs only the engine script
+/// (no plugin); a render is tried only when Surge XT is installed on this machine.
+#[test]
+fn synth_presets_and_errors() {
+    let bin = env!("CARGO_BIN_EXE_aiwaves");
+    let out = std::process::Command::new(bin)
+        .args(["synth", "presets"])
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let presets: Vec<Value> = serde_json::from_slice(&out.stdout).unwrap();
+    let names: Vec<_> = presets
+        .iter()
+        .map(|p| p["name"].as_str().unwrap())
+        .collect();
+    for want in ["braam", "impact", "sub_drop", "whoosh_up"] {
+        assert!(names.contains(&want), "missing preset {want}");
+    }
+    let bad = std::process::Command::new(bin)
+        .args(["synth", "render", "no-such-preset", "--out", "x.wav"])
+        .output()
+        .unwrap();
+    assert!(!bad.status.success());
+    let err: Value = serde_json::from_slice(&bad.stderr).unwrap();
+    assert!(err["error"].as_str().unwrap().contains("unknown preset"));
+}

@@ -1,0 +1,46 @@
+{
+ "description": "Trailer horn: 7-voice detuned saws + a sub octave, a ladder filter blooming open over ~0.7 s, soft drive; root + fifth + octave (A1).",
+ "settings": {
+  "a_osc_1_type": "Modern",
+  "a_osc_1_unison_voices": "7 voices",
+  "a_osc_1_unison_detune": 28.0,
+  "a_osc_2_type": "Modern",
+  "a_osc_2_octave": -1.0,
+  "a_osc_2_volume": -6.0,
+  "a_filter_1_type": "LP Vintage Ladder",
+  "a_filter_1_cutoff": 150.0,
+  "a_filter_1_resonance": 25.0,
+  "a_filter_1_feg_mod_amount": 60.0,
+  "a_filter_eg_attack": 700.0,
+  "a_filter_eg_decay": 2500.0,
+  "a_filter_eg_sustain": 35.0,
+  "a_filter_eg_release": 2000.0,
+  "a_amp_eg_attack": 25.0,
+  "a_amp_eg_decay": 3500.0,
+  "a_amp_eg_sustain": 55.0,
+  "a_amp_eg_release": 2500.0,
+  "a_waveshaper_type": "Soft",
+  "a_waveshaper_drive": 9.0
+ },
+ "notes": [
+  [
+   33,
+   118,
+   0.0,
+   3.5
+  ],
+  [
+   40,
+   100,
+   0.0,
+   3.5
+  ],
+  [
+   45,
+   92,
+   0.02,
+   3.4
+  ]
+ ],
+ "secs": 6.0
+}

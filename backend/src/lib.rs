@@ -6,6 +6,7 @@ pub mod cli;
 pub mod model;
 pub mod server;
 pub mod store;
+pub mod synth;
 
 pub use apply::{ApplyError, apply, state_at, unapply};
 pub use model::{Command, Event, Project};

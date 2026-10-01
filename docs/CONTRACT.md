@@ -157,3 +157,30 @@ highlights the same event; clicking a feed item selects and reveals the control.
 
 Viewers can play/seek audio, select tracks, scroll/zoom, and scrub the replay — all local view
 state. Nothing in the UI sends commands.
+
+## 9. Engines: Surge XT (v0.2)
+
+AIWaves renders synthesised sound with **Surge XT** (free, open source GPL-3, Serum-class: wavetable,
+FM, noise, ladder/OB-Xd filters, 775 parameters), loaded through `pedalboard`. The engine is
+`engines/surge/surge_engine.py`; its presets are data in `engines/surge/presets/*.json`:
+
+```jsonc
+{ "description": "…",
+  "settings": { "a_osc_1_type": "Modern", "a_filter_1_cutoff": 150.0, … },   // Surge parameter ids
+  "notes": [[midi, velocity, start_s, length_s], …], "secs": 6.0,
+  "bend": { "semitones": 12, "time": 1.6, "curve": 0.7 } }                     // optional down-bend
+// or a stack: { "layers": [{ "preset": "impact_crack", "gain": 0.55 }, …], "secs": 4.0 }
+```
+
+Numbers snap to the parameter's nearest valid step (times in ms, frequencies in Hz); strings must
+be one of the parameter's choices (`aiwaves synth params --match <text>` lists them).
+
+**Surge devices in a project:** a device with `"engine": "surge-xt"` and `"preset": "<name>"`; each
+param that maps to a Surge parameter carries `"surge": "<parameter id>"`. Agents change them with
+`param.set` like any other param; `aiwaves synth render-device <project> <track> <device> --out f.wav`
+renders the device as it is *now* on the server (its params override the preset).
+
+CLI: `aiwaves synth info | presets | params [--match T] | render PRESET --out F [--set K=V]…
+[--transpose N] [--secs S] | render-device PROJECT TRACK DEVICE --out F`. Environment:
+`AIWAVES_SURGE_VST3` (the plugin binary), `AIWAVES_SURGE_ENGINE` (the script),
+`AIWAVES_PYTHON` (interpreter with pedalboard).

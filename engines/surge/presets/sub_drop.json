@@ -1,0 +1,24 @@
+{
+ "description": "A sine bent down an octave over 1.6 s: the floor dropping out (from A2).",
+ "settings": {
+  "a_osc_1_type": "Sine",
+  "a_amp_eg_attack": 4.0,
+  "a_amp_eg_decay": 2200.0,
+  "a_amp_eg_sustain": 0.0,
+  "a_amp_eg_release": 300.0
+ },
+ "notes": [
+  [
+   45,
+   120,
+   0.0,
+   2.2
+  ]
+ ],
+ "secs": 2.5,
+ "bend": {
+  "semitones": 12,
+  "time": 1.6,
+  "curve": 0.7
+ }
+}

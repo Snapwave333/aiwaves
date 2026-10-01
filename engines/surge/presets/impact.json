@@ -1,0 +1,18 @@
+{
+ "description": "A film impact: crack + metallic ring + thump, layered.",
+ "layers": [
+  {
+   "preset": "impact_crack",
+   "gain": 0.55
+  },
+  {
+   "preset": "impact_ring",
+   "gain": 0.32
+  },
+  {
+   "preset": "impact_thump",
+   "gain": 0.9
+  }
+ ],
+ "secs": 4.0
+}

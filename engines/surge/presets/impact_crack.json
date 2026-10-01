@@ -1,0 +1,22 @@
+{
+ "description": "Impact layer: a band-passed noise burst (the crack).",
+ "settings": {
+  "a_osc_1_type": "S&H Noise",
+  "a_filter_1_type": "BP 12 dB",
+  "a_filter_1_cutoff": 2400.0,
+  "a_filter_1_resonance": 20.0,
+  "a_amp_eg_attack": 0.0,
+  "a_amp_eg_decay": 380.0,
+  "a_amp_eg_sustain": 0.0,
+  "a_amp_eg_release": 200.0
+ },
+ "notes": [
+  [
+   60,
+   127,
+   0.0,
+   0.5
+  ]
+ ],
+ "secs": 1.2
+}

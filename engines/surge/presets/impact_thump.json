@@ -1,0 +1,24 @@
+{
+ "description": "Impact layer: a sine thump dropping an octave in 0.25 s (the weight).",
+ "settings": {
+  "a_osc_1_type": "Sine",
+  "a_amp_eg_attack": 0.0,
+  "a_amp_eg_decay": 900.0,
+  "a_amp_eg_sustain": 0.0,
+  "a_amp_eg_release": 200.0
+ },
+ "notes": [
+  [
+   45,
+   127,
+   0.0,
+   1.0
+  ]
+ ],
+ "secs": 1.5,
+ "bend": {
+  "semitones": 12,
+  "time": 0.25,
+  "curve": 1.0
+ }
+}

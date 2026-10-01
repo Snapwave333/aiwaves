@@ -1,0 +1,26 @@
+{
+ "description": "Resonant band-passed noise sweeping down.",
+ "settings": {
+  "a_osc_1_type": "S&H Noise",
+  "a_filter_1_type": "BP 12 dB",
+  "a_filter_1_cutoff": 4000.0,
+  "a_filter_1_resonance": 38.0,
+  "a_filter_1_feg_mod_amount": -40.0,
+  "a_filter_eg_attack": 2100.0,
+  "a_filter_eg_decay": 900.0,
+  "a_filter_eg_sustain": 0.0,
+  "a_amp_eg_attack": 1950.0,
+  "a_amp_eg_decay": 1050.0,
+  "a_amp_eg_sustain": 0.0,
+  "a_amp_eg_release": 200.0
+ },
+ "notes": [
+  [
+   60,
+   110,
+   0.0,
+   3.0
+  ]
+ ],
+ "secs": 3.3
+}

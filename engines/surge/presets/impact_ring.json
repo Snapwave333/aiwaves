@@ -1,0 +1,21 @@
+{
+ "description": "Impact layer: a metallic FM ring tuned to A (the body).",
+ "settings": {
+  "a_osc_1_type": "FM3",
+  "a_amp_eg_attack": 0.0,
+  "a_amp_eg_decay": 2600.0,
+  "a_amp_eg_sustain": 0.0,
+  "a_amp_eg_release": 900.0,
+  "a_filter_1_type": "LP 24 dB",
+  "a_filter_1_cutoff": 3800.0
+ },
+ "notes": [
+  [
+   57,
+   110,
+   0.0,
+   2.5
+  ]
+ ],
+ "secs": 4.0
+}

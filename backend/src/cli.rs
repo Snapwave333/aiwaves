@@ -98,6 +98,46 @@ pub enum Cmd {
         #[arg(long)]
         snapshot: Option<PathBuf>,
     },
+    /// Surge XT synth engine (CONTRACT §9): presets, parameters, renders.
+    Synth {
+        #[command(subcommand)]
+        action: SynthCmd,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum SynthCmd {
+    /// Is the engine available (plugin found, pedalboard installed)?
+    Info,
+    /// List the presets (engines/surge/presets/*.json).
+    Presets,
+    /// Surge's parameters (id, name, value, choices or range); --match filters by id or name.
+    Params {
+        #[arg(long, default_value = "")]
+        r#match: String,
+    },
+    /// Render a preset to a WAV file, optionally overriding settings (KEY=VALUE, repeatable).
+    Render {
+        preset: String,
+        #[arg(long)]
+        out: PathBuf,
+        #[arg(long = "set", value_name = "KEY=VALUE")]
+        set: Vec<String>,
+        #[arg(long, default_value_t = 0, allow_hyphen_values = true)]
+        transpose: i32,
+        #[arg(long)]
+        secs: Option<f64>,
+    },
+    /// Render a project's Surge device as it is now on the server (its params override the preset).
+    RenderDevice {
+        project: String,
+        track: String,
+        device: String,
+        #[arg(long)]
+        out: PathBuf,
+        #[arg(long, default_value_t = 0, allow_hyphen_values = true)]
+        transpose: i32,
+    },
 }
 
 struct CliError(Value);
@@ -259,6 +299,63 @@ async fn run_inner(cli: Cli) -> CliResult<()> {
             delay_ms,
             snapshot,
         } => import_events(&client, &project, file, delay_ms, snapshot).await,
+        Cmd::Synth { action } => synth(&client, action).await,
+    }
+}
+
+async fn synth(client: &Client, action: SynthCmd) -> CliResult<()> {
+    let s = |x: &str| x.to_string();
+    let args: Vec<String> = match action {
+        SynthCmd::Info => vec![s("info")],
+        SynthCmd::Presets => vec![s("presets")],
+        SynthCmd::Params { r#match } => vec![s("params"), s("--match"), r#match],
+        SynthCmd::Render {
+            preset,
+            out,
+            set,
+            transpose,
+            secs,
+        } => {
+            let mut a = vec![s("render"), preset, s("--out"), out.display().to_string()];
+            for kv in set {
+                a.push(s("--set"));
+                a.push(kv);
+            }
+            a.push(format!("--transpose={transpose}"));
+            if let Some(secs) = secs {
+                a.push(format!("--secs={secs}"));
+            }
+            a
+        }
+        SynthCmd::RenderDevice {
+            project,
+            track,
+            device,
+            out,
+            transpose,
+        } => {
+            // the device as it is right now, including every knob agents have turned
+            let p = client.get(&format!("/api/projects/{project}")).await?;
+            let tmp =
+                std::env::temp_dir().join(format!("aiwaves-{project}-{}.json", std::process::id()));
+            std::fs::write(&tmp, p.to_string()).map_err(|e| CliError::msg(e.to_string()))?;
+            vec![
+                s("render-device"),
+                tmp.display().to_string(),
+                track,
+                device,
+                s("--out"),
+                out.display().to_string(),
+                format!("--transpose={transpose}"),
+            ]
+        }
+    };
+    let res = tokio::task::spawn_blocking(move || crate::synth::run(&args))
+        .await
+        .map_err(|e| CliError::msg(e.to_string()))?;
+    match res {
+        Ok(v) => print_pretty(&v),
+        Err(e) => Err(CliError(e)),
     }
 }
 

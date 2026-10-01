@@ -1,0 +1,21 @@
+{
+ "description": "A tiny tuned FM blip, glassy and metallic (120 ms), A5.",
+ "settings": {
+  "a_osc_1_type": "FM2",
+  "a_amp_eg_attack": 0.0,
+  "a_amp_eg_decay": 120.0,
+  "a_amp_eg_sustain": 0.0,
+  "a_amp_eg_release": 60.0,
+  "a_filter_1_type": "HP 12 dB",
+  "a_filter_1_cutoff": 600.0
+ },
+ "notes": [
+  [
+   81,
+   100,
+   0.0,
+   0.15
+  ]
+ ],
+ "secs": 0.6
+}

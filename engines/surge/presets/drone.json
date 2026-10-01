@@ -1,0 +1,37 @@
+{
+ "description": "Window + Twist oscillators swelling over 6 s under a slowly opening resonant ladder: an evolving, slightly alien pad (A2 + E3).",
+ "settings": {
+  "a_osc_1_type": "Window",
+  "a_osc_1_unison_voices": "4 voices",
+  "a_osc_1_unison_detune": 18.0,
+  "a_osc_2_type": "Twist",
+  "a_osc_2_volume": -4.0,
+  "a_osc_2_octave": -1.0,
+  "a_filter_1_type": "LP Legacy Ladder",
+  "a_filter_1_cutoff": 260.0,
+  "a_filter_1_resonance": 45.0,
+  "a_filter_1_feg_mod_amount": 30.0,
+  "a_filter_eg_attack": 9000.0,
+  "a_filter_eg_decay": 6000.0,
+  "a_filter_eg_sustain": 50.0,
+  "a_amp_eg_attack": 6000.0,
+  "a_amp_eg_decay": 4000.0,
+  "a_amp_eg_sustain": 80.0,
+  "a_amp_eg_release": 4000.0
+ },
+ "notes": [
+  [
+   45,
+   90,
+   0.0,
+   12.0
+  ],
+  [
+   52,
+   70,
+   0.0,
+   12.0
+  ]
+ ],
+ "secs": 16.0
+}
