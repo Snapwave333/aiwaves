@@ -40,8 +40,11 @@ export interface Device {
 export interface Note {
   start_beat: number;
   length_beats: number;
+  /** Pitch; on `kind: "drum"` tracks a lane number. */
   midi: number;
   velocity: number;
+  /** Drum name on drum tracks, optional elsewhere. */
+  label?: string;
 }
 
 export interface Clip {
@@ -51,6 +54,8 @@ export interface Clip {
   length_bars: number;
   color: string | null;
   notes: Note[] | null;
+  /** The clip's own waveform (audio clips), evenly spread over its length. */
+  peaks?: number[] | null;
 }
 
 export interface Mixer {

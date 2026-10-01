@@ -1,52 +1,78 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
+  Injector,
+  afterNextRender,
   computed,
   effect,
   inject,
+  signal,
   untracked,
   viewChild,
 } from '@angular/core';
 import { Animator } from '../core/animator.service';
 import { AudioService } from '../core/audio.service';
 import { Clip, Track } from '../core/model';
-import { barAt, formatDb, secondsPerBar } from '../core/time';
+import { barAt, beatsPerBar, formatDb, secondsPerBar } from '../core/time';
 import { WorkspaceStore } from '../core/workspace.store';
+import {
+  DrumLane,
+  barLabelEvery,
+  clampLane,
+  clampPpb,
+  defaultLaneHeight,
+  drumLanes,
+  fitAnchorPx,
+  fitPpb,
+  LANE_MAX_PX,
+  LANE_MIN_PX,
+  laneWindow,
+  peakGain,
+  wavePath,
+  wheelFactor,
+  zoomStep,
+} from './clip-render';
+import { ClipComponent } from './clip.component';
+import { LaneCanvasDirective } from './lane-canvas.directive';
 import { trackLevel } from './levels';
 
 const HEAD_W = 188;
-const MIN_PPB = 6;
-const MAX_PPB = 120;
-const SECTION_COLORS = ['#3b4a5c', '#4a3f5c', '#5c3f45', '#3f5c4a', '#5c523f', '#3f525c'];
+const RULER_H = 26;
+const CHORD_H = 20;
+const BUTTON_ZOOM = 1.5;
+const SECTION_COLORS = ['#5b7fa6', '#8a6fb0', '#b06f7c', '#6fa684', '#a69a5b', '#5b9aa6'];
 
 @Component({
   selector: 'aw-arrangement',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ClipComponent, LaneCanvasDirective],
   host: { class: 'panel arrangement', role: 'region', 'aria-label': 'Arrangement' },
   template: `
     <div class="panel-bar">
       <h2 class="panel-title">Arrangement</h2>
+      <span class="panel-sub">{{ ppb().toFixed(1) }} px/bar</span>
       <div class="panel-tools">
         <button
           type="button"
           class="mini-btn"
-          (click)="zoom(1 / 1.4)"
+          (click)="zoomCenter(1 / buttonZoom)"
           aria-label="Zoom out"
-          title="Zoom out (Ctrl+wheel)"
+          title="Zoom out (Ctrl/Cmd + wheel)"
         >
           −
         </button>
         <button
           type="button"
           class="mini-btn"
-          (click)="zoom(1.4)"
+          (click)="zoomCenter(buttonZoom)"
           aria-label="Zoom in"
-          title="Zoom in (Ctrl+wheel)"
+          title="Zoom in (Ctrl/Cmd + wheel)"
         >
           +
         </button>
-        <button type="button" class="mini-btn" (click)="fit()" title="Fit the song to the window">
+        <button type="button" class="mini-btn" (click)="fit()" title="Fit the whole song">
           Fit
         </button>
       </div>
@@ -54,9 +80,18 @@ const SECTION_COLORS = ['#3b4a5c', '#4a3f5c', '#5c3f45', '#3f5c4a', '#5c523f', '
     @let p = store.project();
     <div class="arr-scroll" #scroller (wheel)="onWheel($event)">
       @if (p) {
-        <div class="arr-grid" [style.width.px]="headW + lanesWidth()" [style.--ppb]="ppb() + 'px'">
-          <div class="arr-row ruler-row">
-            <div class="arr-head corner">Bar</div>
+        <div
+          class="arr-grid"
+          [class.beats]="ppb() >= 48"
+          [style.width.px]="headW + lanesWidth()"
+          [style.--ppb]="ppb() + 'px'"
+          [style.--bpb]="bpb()"
+        >
+          <div class="arr-row ruler-row" [style.height.px]="rulerH">
+            <div class="arr-head corner">
+              <span>Locators</span>
+              <span class="corner-bar">Bar</span>
+            </div>
             <div
               class="arr-lane ruler"
               (click)="seekFromLane($event)"
@@ -65,21 +100,31 @@ const SECTION_COLORS = ['#3b4a5c', '#4a3f5c', '#5c3f45', '#3f5c4a', '#5c523f', '
             >
               @for (s of p.sections; track s.start_bar; let i = $index) {
                 <div
-                  class="section"
+                  class="section-band"
                   [style.left.px]="s.start_bar * ppb()"
                   [style.width.px]="(s.end_bar - s.start_bar) * ppb()"
-                  [style.background]="sectionColor(i)"
+                  [style.--sec]="sectionColor(i)"
+                  [class.current]="s === currentSection()"
+                ></div>
+                <div
+                  class="locator"
+                  [style.left.px]="s.start_bar * ppb()"
+                  [style.--sec]="sectionColor(i)"
                   [class.current]="s === currentSection()"
                 >
-                  {{ s.name }}
+                  <span class="locator-flag">{{ s.name }}</span>
                 </div>
+              }
+              @for (b of barTicks(); track b) {
+                <span class="bar-tick" [style.left.px]="b * ppb()"></span>
               }
               @for (b of barLabels(); track b) {
                 <span class="bar-num" [style.left.px]="b * ppb()">{{ b + 1 }}</span>
               }
+              <span class="lane-playhead" [style.left.px]="playheadBar() * ppb()"></span>
             </div>
           </div>
-          <div class="arr-row chord-row">
+          <div class="arr-row chord-row" [style.top.px]="rulerH" [style.height.px]="chordH">
             <div class="arr-head corner">Chords</div>
             <div class="arr-lane chords" [style.width.px]="lanesWidth()">
               @for (c of visibleChords(); track c.bar) {
@@ -92,7 +137,7 @@ const SECTION_COLORS = ['#3b4a5c', '#4a3f5c', '#5c3f45', '#3f5c4a', '#5c523f', '
               }
             </div>
           </div>
-          <div class="arr-row master-row">
+          <div class="arr-row master-row" [style.top.px]="rulerH + chordH">
             <div class="arr-head">
               <span class="head-name">Master render</span>
               <span class="head-sub">{{ p.audio.master }}</span>
@@ -115,14 +160,18 @@ const SECTION_COLORS = ['#3b4a5c', '#4a3f5c', '#5c3f45', '#3f5c4a', '#5c523f', '
               >
                 <path [attr.d]="wavePath()" />
               </svg>
+              <span class="lane-playhead" [style.left.px]="playheadBar() * ppb()"></span>
             </div>
           </div>
 
           @for (t of p.tracks; track t.id) {
+            @let laneH = laneHeight(t);
             <div
               class="arr-row track-row"
               [class.selected]="t.id === store.selectedTrack()?.id"
               [class.ghost]="store.ghosts().has('tracks.' + t.id)"
+              [class.compact]="laneH < 40"
+              [style.height.px]="laneH"
             >
               <div
                 class="arr-head track-head"
@@ -162,21 +211,47 @@ const SECTION_COLORS = ['#3b4a5c', '#4a3f5c', '#5c3f45', '#3f5c4a', '#5c523f', '
               <div class="arr-lane clips-lane" [style.width.px]="lanesWidth()">
                 @for (c of t.clips; track c.id) {
                   @let cp = 'tracks.' + t.id + '.clips.' + c.id;
-                  <div
-                    class="clip"
-                    [attr.data-path]="cp"
-                    [class.glow]="animator.glow(cp)"
-                    [class.ghost]="store.ghosts().has(cp)"
-                    [class.playing]="isUnderPlayhead(c)"
-                    [style.left.px]="animator.value(cp, c.start_bar) * ppb()"
-                    [style.width.px]="c.length_bars * ppb()"
-                    [style.--clip]="c.color ?? t.color"
-                    [title]="c.name + ' — bar ' + (c.start_bar + 1).toFixed(2)"
-                  >
-                    <span class="clip-name">{{ c.name }}</span>
-                  </div>
+                  <aw-clip
+                    [clip]="c"
+                    [path]="cp"
+                    [color]="c.color ?? t.color"
+                    [ppb]="ppb()"
+                    [ghost]="store.ghosts().has(cp)"
+                    [playing]="isUnderPlayhead(c)"
+                  />
+                }
+                @if (t.clips.length) {
+                  <canvas
+                    awLane
+                    [trackId]="t.id"
+                    [clips]="t.clips"
+                    [color]="t.color"
+                    [ppb]="ppb()"
+                    [beatsPerBar]="bpb()"
+                    [laneH]="laneH"
+                    [lanes]="drumLanesOf().get(t.id) ?? null"
+                    [gain]="gainOf().get(t.id) ?? 1"
+                    [win]="laneWin()"
+                  ></canvas>
                 }
               </div>
+              <div
+                class="lane-resize"
+                role="separator"
+                aria-orientation="horizontal"
+                tabindex="0"
+                [attr.aria-label]="'Height of track ' + t.name"
+                [attr.aria-valuenow]="laneH"
+                [attr.aria-valuemin]="laneMin"
+                [attr.aria-valuemax]="laneMax"
+                title="Drag to resize the lane"
+                (pointerdown)="startResize($event, t)"
+                (pointermove)="moveResize($event, t)"
+                (pointerup)="endResize($event)"
+                (pointercancel)="endResize($event)"
+                (dblclick)="resetHeight(t)"
+                (keydown)="resizeKey($event, t)"
+              ></div>
             </div>
           }
           <div
@@ -193,19 +268,55 @@ export class ArrangementComponent {
   protected readonly store = inject(WorkspaceStore);
   protected readonly animator = inject(Animator);
   private readonly audio = inject(AudioService);
+  private readonly injector = inject(Injector);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly scroller = viewChild<ElementRef<HTMLDivElement>>('scroller');
 
   protected readonly headW = HEAD_W;
+  protected readonly rulerH = RULER_H;
+  protected readonly chordH = CHORD_H;
+  protected readonly buttonZoom = BUTTON_ZOOM;
+  protected readonly laneMin = LANE_MIN_PX;
+  protected readonly laneMax = LANE_MAX_PX;
   protected readonly ppb = this.store.pxPerBar;
   protected readonly fmtDb = formatDb;
-  private fitted = false;
+  /** Lane heights the viewer dragged; everything else uses the default for its kind. */
+  private readonly laneHeights = signal<Readonly<Record<string, number>>>({});
+  private resizing: { id: string; startY: number; startH: number } | null = null;
 
-  protected readonly lanesWidth = computed(() => {
+  /** Horizontal scroll and visible lane width, mirrored from the scroller. */
+  private readonly scrollX = signal(0);
+  private readonly viewW = signal(0);
+  /** True until the viewer zooms: the song keeps fitting the window as it resizes. */
+  private following = true;
+  /** Where a smooth zoom is heading: the zoom, and the bar that stays under a viewport x. */
+  private zoomTarget: { ppb: number; bar: number; px: number } | null = null;
+  private zoomRaf = 0;
+
+  protected readonly bpb = computed(() => {
     const p = this.store.project();
-    if (!p) return 0;
-    const bars = Math.max(p.length_bars, p.audio.duration_s / secondsPerBar(p));
-    return Math.ceil(bars + 1) * this.ppb();
+    return p ? beatsPerBar(p) : 4;
   });
+  protected readonly songBars = computed(() => {
+    const p = this.store.project();
+    return p ? Math.max(p.length_bars, p.audio.duration_s / secondsPerBar(p)) : 0;
+  });
+  protected readonly lanesWidth = computed(() => Math.ceil(this.songBars() + 1) * this.ppb());
+  /** The span every lane canvas draws; changes only when scrolling crosses a viewport tile. */
+  protected readonly laneWin = computed(
+    () => laneWindow(this.scrollX(), this.viewW(), this.lanesWidth()),
+    { equal: (a, b) => a.start === b.start && a.width === b.width },
+  );
+  /** Drum tracks' lanes from all their clips, so every clip of a track draws the same rows. */
+  protected readonly drumLanesOf = computed(() => {
+    const out = new Map<string, DrumLane[]>();
+    for (const t of this.store.project()?.tracks ?? [])
+      if (t.kind === 'drum') out.set(t.id, drumLanes(t.clips.flatMap((c) => c.notes ?? [])));
+    return out;
+  });
+  protected readonly gainOf = computed(
+    () => new Map((this.store.project()?.tracks ?? []).map((t) => [t.id, peakGain(t.clips)])),
+  );
   protected readonly playheadBar = computed(() => {
     const p = this.store.project();
     return p ? barAt(p, this.audio.time()) : 0;
@@ -218,11 +329,15 @@ export class ArrangementComponent {
   protected readonly barLabels = computed(() => {
     const p = this.store.project();
     if (!p) return [];
-    const ppb = this.ppb();
-    const every = ppb < 12 ? 8 : ppb < 24 ? 4 : ppb < 48 ? 2 : 1;
+    const every = barLabelEvery(this.ppb());
     const out: number[] = [];
     for (let b = 0; b < p.length_bars; b += every) out.push(b);
     return out;
+  });
+  protected readonly barTicks = computed(() => {
+    const p = this.store.project();
+    if (!p || this.ppb() < 8) return [];
+    return Array.from({ length: p.length_bars }, (_, b) => b);
   });
   protected readonly visibleChords = computed(() => {
     const chords = this.store.project()?.chords ?? [];
@@ -241,20 +356,34 @@ export class ArrangementComponent {
     const p = this.store.project();
     return p ? (p.audio.duration_s / secondsPerBar(p)) * this.ppb() : 0;
   });
+  /** In viewBox units: one unit per peak across, 100 down. */
   protected readonly wavePath = computed(() => {
     const peaks = this.store.project()?.audio.peaks ?? [];
-    if (!peaks.length) return '';
-    const top = peaks.map((v, i) => `${i} ${(50 - Math.min(1, v) * 48).toFixed(1)}`);
-    const bottom = peaks.map((v, i) => `${i} ${(50 + Math.min(1, v) * 48).toFixed(1)}`).reverse();
-    return `M ${top.join(' L ')} L ${bottom.join(' L ')} Z`;
+    return wavePath(peaks, peaks.length, 100);
   });
 
   constructor() {
+    afterNextRender(() => {
+      const el = this.scroller()?.nativeElement;
+      if (!el) return;
+      // a plain listener: scrolling only updates a signal, it doesn't re-render the arrangement
+      const onScroll = () => this.scrollX.set(el.scrollLeft);
+      const measure = () => this.viewW.set(Math.max(0, el.clientWidth - HEAD_W));
+      el.addEventListener('scroll', onScroll, { passive: true });
+      measure();
+      const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+      ro?.observe(el);
+      this.destroyRef.onDestroy(() => {
+        el.removeEventListener('scroll', onScroll);
+        ro?.disconnect();
+        if (this.zoomRaf) cancelAnimationFrame(this.zoomRaf);
+      });
+    });
+    // fit the whole song until the viewer zooms; refit when the window or the song length changes
     effect(() => {
-      if (this.store.project() && this.scroller() && !this.fitted) {
-        this.fitted = true;
-        setTimeout(() => this.fit());
-      }
+      const bars = this.songBars();
+      const w = this.viewW();
+      if (bars && w && this.following) untracked(() => this.fitNow());
     });
     // keep the playhead in view while playing
     effect(() => {
@@ -281,31 +410,127 @@ export class ArrangementComponent {
     return this.audio.playing() && b >= c.start_bar && b < c.start_bar + c.length_bars;
   }
 
-  protected zoom(factor: number): void {
-    const el = this.scroller()?.nativeElement;
-    const old = this.ppb();
-    const next = Math.min(MAX_PPB, Math.max(MIN_PPB, old * factor));
-    const centerBar = el ? (el.scrollLeft + (el.clientWidth - HEAD_W) / 2) / old : 0;
-    this.ppb.set(next);
-    if (el)
-      setTimeout(
-        () => (el.scrollLeft = Math.max(0, centerBar * next - (el.clientWidth - HEAD_W) / 2)),
-      );
+  // --- lane heights ----------------------------------------------------------------------------
+
+  protected laneHeight(t: Track): number {
+    return this.laneHeights()[t.id] ?? defaultLaneHeight(t.kind);
   }
 
+  protected startResize(e: PointerEvent, t: Track): void {
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    this.resizing = { id: t.id, startY: e.clientY, startH: this.laneHeight(t) };
+    e.preventDefault();
+  }
+
+  protected moveResize(e: PointerEvent, t: Track): void {
+    const r = this.resizing;
+    if (!r || r.id !== t.id) return;
+    this.setHeight(t.id, r.startH + (e.clientY - r.startY));
+  }
+
+  protected endResize(e: PointerEvent): void {
+    if (!this.resizing) return;
+    (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+    this.resizing = null;
+  }
+
+  protected resetHeight(t: Track): void {
+    this.laneHeights.update((h) => {
+      const next = { ...h };
+      delete next[t.id];
+      return next;
+    });
+  }
+
+  protected resizeKey(e: KeyboardEvent, t: Track): void {
+    const delta = e.key === 'ArrowUp' ? -8 : e.key === 'ArrowDown' ? 8 : 0;
+    if (!delta) return;
+    e.preventDefault();
+    e.stopPropagation(); // the arrows otherwise step the replay
+    this.setHeight(t.id, this.laneHeight(t) + delta);
+  }
+
+  private setHeight(id: string, h: number): void {
+    this.laneHeights.update((all) => ({ ...all, [id]: clampLane(h) }));
+  }
+
+  // --- zoom and scroll -------------------------------------------------------------------------
+
+  /**
+   * Smoothly zooms by `factor` keeping the bar under `anchorPx` (viewport x from the lanes' left
+   * edge) in place. Repeated calls (wheel notches) compound onto the zoom already in flight.
+   */
+  protected zoomBy(factor: number, anchorPx: number): void {
+    this.following = false;
+    const target = clampPpb((this.zoomTarget?.ppb ?? this.ppb()) * factor);
+    this.zoomTo(target, anchorPx, (this.scrollX() + anchorPx) / this.ppb());
+  }
+
+  protected zoomCenter(factor: number): void {
+    this.zoomBy(factor, this.viewW() / 2);
+  }
+
+  /** Smoothly zooms out (or in) to show the whole song, ending scrolled to its start. */
   protected fit(): void {
-    const el = this.scroller()?.nativeElement;
-    const p = this.store.project();
-    if (!el || !p) return;
-    const bars = Math.max(p.length_bars, p.audio.duration_s / secondsPerBar(p)) + 1;
-    this.ppb.set(Math.min(MAX_PPB, Math.max(MIN_PPB, (el.clientWidth - HEAD_W - 4) / bars)));
-    el.scrollLeft = 0;
+    if (!this.store.project() || !this.viewW()) return;
+    this.following = true;
+    const p0 = this.ppb();
+    const s0 = this.scrollX();
+    const target = this.fitTarget();
+    const px = fitAnchorPx(s0, p0, target);
+    this.zoomTo(target, px, (s0 + px) / p0);
   }
 
   protected onWheel(e: WheelEvent): void {
-    if (!e.ctrlKey) return;
+    if (!e.ctrlKey && !e.metaKey) return;
     e.preventDefault();
-    this.zoom(e.deltaY < 0 ? 1.15 : 1 / 1.15);
+    const el = this.scroller()?.nativeElement;
+    const left = el ? el.getBoundingClientRect().left : 0;
+    const dy = e.deltaMode === WheelEvent.DOM_DELTA_LINE ? e.deltaY * 33 : e.deltaY;
+    this.zoomBy(wheelFactor(dy), Math.max(0, e.clientX - left - HEAD_W));
+  }
+
+  private fitTarget(): number {
+    return fitPpb(this.songBars() + 1, this.viewW() - 4);
+  }
+
+  private fitNow(): void {
+    this.zoomTarget = null;
+    this.ppb.set(this.fitTarget());
+    this.setScroll(0);
+  }
+
+  private zoomTo(ppb: number, px: number, bar: number): void {
+    this.zoomTarget = { ppb, bar, px };
+    if (typeof requestAnimationFrame === 'undefined') this.zoomFrame(1);
+    else if (!this.zoomRaf) this.zoomRaf = requestAnimationFrame(() => this.zoomFrame());
+  }
+
+  private zoomFrame(rate?: number): void {
+    this.zoomRaf = 0;
+    const z = this.zoomTarget;
+    if (!z) return;
+    const ppb = zoomStep(this.ppb(), z.ppb, rate);
+    this.ppb.set(ppb);
+    this.setScroll(Math.max(0, z.bar * ppb - z.px));
+    if (ppb === z.ppb) this.zoomTarget = null;
+    else this.zoomRaf = requestAnimationFrame(() => this.zoomFrame());
+  }
+
+  /** Scrolls once the new zoom has rendered (before that the grid has its old width). */
+  private setScroll(x: number): void {
+    this.scrollX.set(x);
+    afterNextRender(
+      {
+        write: () => {
+          const el = this.scroller()?.nativeElement;
+          if (!el) return;
+          el.scrollLeft = x;
+          this.scrollX.set(el.scrollLeft);
+        },
+      },
+      { injector: this.injector },
+    );
   }
 
   protected seekFromLane(e: MouseEvent): void {

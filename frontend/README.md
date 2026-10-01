@@ -28,7 +28,9 @@ cargo run -- serve --data ../data --static ../frontend/dist/frontend/browser
 
 **Mock / demo mode.** If `GET /api/health` fails, the app loads the "Longing" fixture from
 `public/demo/longing/` and shows a **Demo data** banner. `npm start` and `npm run build` copy it
-there from `../fixtures/longing/` (`npm run fixtures` does it alone). The demo audio
+there from `../fixtures/longing/` (`npm run fixtures` does it alone). `npx ng serve` and
+`npx ng build` skip those npm hooks, so run `npm run fixtures` first, or the demo shows whatever
+copy is already in `public/`. The unit tests read `../fixtures/longing/` directly. The demo audio
 (`fixtures/longing/audio/master.wav`, not in git) is copied too when it exists. While in demo mode
 the app checks the backend every 15 s and switches to live once it answers.
 
@@ -47,9 +49,10 @@ npx prettier --check "src/**/*.{ts,html,scss}"
 
 - **Transport (top):** play/pause/stop, bar.beat.sixteenth, time, BPM, time signature, key, the
   section and chord at the playhead, the song version, and the connection state.
-- **Arrangement (centre):** section ruler, chord lane, the master waveform from `audio.peaks`, and a
-  lane per track with coloured clips on a bar grid. A playhead follows the audio. Zoom with − / + /
-  Fit or Ctrl+wheel. Click the ruler or the waveform to seek.
+- **Arrangement (centre):** a ruler with section locators and bar numbers, the chord lane, the
+  master waveform from `audio.peaks` (pinned under the ruler), and a lane per track. Clips show
+  their contents like Live's arrangement (see below). A playhead follows the audio. Click the ruler
+  or the waveform to seek.
 - **Right column:** the activity feed, with Changelog / Git tabs below it.
 - **Replay bar:** "Replay the build", step buttons, a scrubber over event seq with version marks,
   and "Go to now".
@@ -58,6 +61,34 @@ npx prettier --check "src/**/*.{ts,html,scss}"
 
 Below 1000 px wide the panels stack vertically. Keys: **Space** plays/pauses, **← / →** step the
 replay one event.
+
+## The arrangement
+
+- **Whole song by default.** The view opens fitted to the whole song (all 65 bars of "Longing" at
+  1280 px wide) and keeps fitting as the window resizes, until you zoom. **Ctrl/Cmd + wheel**
+  zooms smoothly around the mouse (the bar under it stays put), **− / +** zoom around the centre,
+  **Fit** glides back to the whole song. Shift + wheel or the scrollbar scrolls sideways. The ruler
+  thins its bar numbers out as you zoom out and the grid adds beat lines as you zoom in.
+- **Clip contents** (contract §3, v0.1). Clip colour is the track colour: a name bar in that
+  colour over a darker body. Audio clips with `peaks` draw a filled, symmetric waveform. Each track
+  gets one display gain so its loudest clip nearly fills the lane (at most 4×); clips keep their
+  relative loudness. MIDI clips draw a piano roll: pitch is the row (auto range per clip, at least
+  an octave), length is the width, velocity is the brightness. Drum tracks (`kind: "drum"`) draw
+  one row per lane (`midi` = lane, `label` = drum name). The rows come from all the track's clips,
+  so they line up from clip to clip, and the drum names show at each clip's left edge once the rows
+  are tall enough. Clips narrower than 40 px hide their name; the tooltip always has it.
+- **Lane heights.** Drag a track's bottom edge (or focus it and use ↑ / ↓) to resize it, and
+  double-click it to reset. Defaults depend on the track kind: audio 46 px, instrument 52 px,
+  drum 72 px.
+- **Performance.** Clip boxes are DOM elements (about 130, so they can carry `data-path`, glow
+  and tooltips). Their contents are drawn on **one canvas per lane**, never a node per note. The
+  canvas covers the viewport plus one viewport of margin on each side, snapped to viewport-sized
+  tiles (`laneWindow`). Scrolling within a tile moves pixels that are already drawn. Crossing a
+  tile, or zooming, redraws every lane, which takes about 6 ms with ~3,100 notes on screen. Canvas
+  memory doesn't grow with zoom. The geometry (note → rect, peaks → polygon, drum lanes, zoom
+  steps, the lane window) is pure code in `views/clip-render.ts` with unit tests.
+- `clip.move` slides the clip box and its drawn contents together (both read `Animator.value` at
+  the clip's path). `clip.add` makes the box glow and pins its caption.
 
 ## How the animated mapping works
 

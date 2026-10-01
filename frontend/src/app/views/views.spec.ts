@@ -72,12 +72,74 @@ describe('workspace views', () => {
     await f.whenStable();
     const el = f.nativeElement as HTMLElement;
     expect(el.querySelectorAll('.track-row').length).toBe(10);
-    expect(el.querySelectorAll('.section').length).toBe(6);
+    expect(el.querySelectorAll('.locator').length).toBe(6);
+    expect(el.querySelector('.locator-flag')!.textContent).toBe('intro');
     expect(el.querySelector('[data-path="tracks.vocal.clips.v1"]')).toBeTruthy();
     expect(el.querySelector('.track-row.ghost')).toBeNull();
     store.seekSeq(20, false);
     await f.whenStable();
     expect(el.querySelectorAll('.track-row.ghost').length).toBe(5); // strings, zither, chops, handpan, doubles
+  });
+
+  it('arrangement draws clip contents on one canvas per lane, not a node per note', async () => {
+    store.pxPerBar.set(10);
+    const f = TestBed.createComponent(ArrangementComponent);
+    await f.whenStable();
+    const el = f.nativeElement as HTMLElement;
+    const tracks = store.project()!.tracks;
+    const clips = tracks.reduce((n, t) => n + t.clips.length, 0);
+    const notes = tracks.reduce(
+      (n, t) => n + t.clips.reduce((m, c) => m + (c.notes?.length ?? 0), 0),
+      0,
+    );
+    expect(notes).toBeGreaterThan(2000);
+    expect(el.querySelectorAll('aw-clip').length).toBe(clips);
+    // every track with clips (all but the master) gets exactly one canvas
+    expect(el.querySelectorAll('canvas.lane-canvas').length).toBe(
+      tracks.filter((t) => t.clips.length).length,
+    );
+    expect(el.querySelectorAll('*').length).toBeLessThan(notes);
+
+    const v1 = el.querySelector('[data-path="tracks.vocal.clips.v1"]') as HTMLElement;
+    expect(v1.title).toContain('bar 2.68');
+    expect(v1.title).toContain('audio');
+    // a 2.2-bar clip at 10 px/bar is narrower than a readable name
+    expect(v1.classList).toContain('narrow');
+    expect(v1.style.width).toBe('22.34px');
+    store.pxPerBar.set(40);
+    await f.whenStable();
+    expect(v1.classList).not.toContain('narrow');
+    expect(v1.style.left).toBe(`${1.683 * 40}px`);
+  });
+
+  it('a clip.move slides the clip box from its old bar', async () => {
+    let clock = 5000;
+    vi.spyOn(performance, 'now').mockImplementation(() => clock);
+    store.pxPerBar.set(10);
+    const f = TestBed.createComponent(ArrangementComponent);
+    await f.whenStable();
+    const animator = TestBed.inject(Animator);
+    const z2 = store.project()!.tracks.find((t) => t.id === 'zither')!.clips[1];
+    animator.trigger({
+      seq: 999,
+      ts: '2026-09-30T00:00:00Z',
+      agent: 'test',
+      verb: 'clip.move',
+      target: `tracks.zither.clips.${z2.id}`,
+      from: z2.start_bar - 4,
+      to: z2.start_bar,
+      reason: 'test',
+    });
+    await f.whenStable();
+    const box = (f.nativeElement as HTMLElement).querySelector(
+      `[data-path="tracks.zither.clips.${z2.id}"]`,
+    ) as HTMLElement;
+    expect(box.style.left).toBe(`${(z2.start_bar - 4) * 10}px`);
+    expect(box.classList).toContain('glow');
+    clock += TWEEN_MS;
+    animator.now.set(clock);
+    await f.whenStable();
+    expect(box.style.left).toBe(`${z2.start_bar * 10}px`);
   });
 
   it('activity feed lists events newest first and dims the future while replaying', async () => {
