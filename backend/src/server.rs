@@ -7,7 +7,7 @@ use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
 use axum::extract::{Path, Query, Request, State};
 use axum::http::{HeaderMap, HeaderValue, Method, StatusCode, header};
 use axum::response::{IntoResponse, Response};
-use axum::routing::{any, get, post};
+use axum::routing::{any, delete, get, post};
 use axum::{Json, Router};
 use futures_util::{SinkExt, StreamExt};
 use serde_json::{Value, json};
@@ -33,6 +33,12 @@ pub struct AppState {
 
 pub struct ApiError(StatusCode, String);
 
+impl ApiError {
+    pub fn new(status: StatusCode, msg: impl Into<String>) -> Self {
+        ApiError(status, msg.into())
+    }
+}
+
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         (self.0, Json(json!({ "error": self.1 }))).into_response()
@@ -55,7 +61,7 @@ fn bad_request(msg: impl Into<String>) -> ApiError {
 type ApiResult<T> = Result<T, ApiError>;
 
 impl AppState {
-    fn project(&self, id: &str) -> ApiResult<Arc<ProjectHandle>> {
+    pub(crate) fn project(&self, id: &str) -> ApiResult<Arc<ProjectHandle>> {
         self.store
             .get(id)
             .ok_or_else(|| ApiError(StatusCode::NOT_FOUND, format!("unknown project '{id}'")))
@@ -73,6 +79,23 @@ pub fn router(state: AppState, static_dir: Option<PathBuf>) -> Router {
         .route("/api/projects/{id}/audio/{file}", get(project_audio))
         .route("/api/projects/{id}/commands", post(post_command))
         .route("/api/projects/{id}/live", get(live))
+        // cover art: a viewer preference, the only routes a viewer may write to (CONTRACT §10)
+        .route(
+            "/api/projects/{id}/covers",
+            post(crate::covers::new_cover).get(crate::covers::list_covers),
+        )
+        .route(
+            "/api/projects/{id}/covers/saved",
+            delete(crate::covers::unsave_cover),
+        )
+        .route(
+            "/api/projects/{id}/covers/{name}",
+            get(crate::covers::get_cover),
+        )
+        .route(
+            "/api/projects/{id}/covers/{name}/save",
+            post(crate::covers::save_cover),
+        )
         .route("/api/{*rest}", any(api_not_found))
         .with_state(state);
     let app = match static_dir {
@@ -89,7 +112,7 @@ pub fn router(state: AppState, static_dir: Option<PathBuf>) -> Router {
     app.layer(
         CorsLayer::new()
             .allow_origin(origins)
-            .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
+            .allow_methods([Method::GET, Method::POST, Method::DELETE, Method::OPTIONS])
             .allow_headers([header::AUTHORIZATION, header::CONTENT_TYPE, header::RANGE])
             .expose_headers([
                 header::CONTENT_RANGE,

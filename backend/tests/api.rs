@@ -743,3 +743,96 @@ fn synth_presets_and_errors() {
     let err: Value = serde_json::from_slice(&bad.stderr).unwrap();
     assert!(err["error"].as_str().unwrap().contains("unknown preset"));
 }
+
+/// Is Python + Pillow here? (cover tests need the real generator; skipped otherwise)
+fn pillow_available() -> bool {
+    std::process::Command::new(std::env::var("AIWAVES_PYTHON").unwrap_or_else(|_| "python".into()))
+        .args(["-c", "import PIL"])
+        .output()
+        .is_ok_and(|o| o.status.success())
+}
+
+/// CONTRACT §10: a new cover per playthrough, the saved one while saved, pruning, and no token
+/// needed - but nothing outside the covers folder can be read or written.
+#[tokio::test]
+async fn covers_playthroughs_saving_and_pruning() {
+    if !pillow_available() {
+        eprintln!("skipped: Python + Pillow not available");
+        return;
+    }
+    // SAFETY of the env var: only this test reads AIWAVES_COVERS_KEEP
+    unsafe { std::env::set_var("AIWAVES_COVERS_KEEP", "2") };
+    let s = start().await;
+    let http = reqwest::Client::new();
+    let url = |p: &str| format!("{}/api/projects/longing/covers{p}", s.base);
+    let post = |p: String| http.post(p).send();
+    let first = post(url("")).await.unwrap();
+    assert_eq!(
+        first.status().as_u16(),
+        201,
+        "a playthrough makes a new cover"
+    );
+    let first: Value = first.json().await.unwrap();
+    let name = first["name"].as_str().unwrap().to_string();
+    assert!(first["palette"].as_array().is_some_and(|p| !p.is_empty()));
+    let png = http
+        .get(format!("{}{}", s.base, first["url"].as_str().unwrap()))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(png.status().as_u16(), 200);
+    assert_eq!(&png.bytes().await.unwrap()[..8], b"\x89PNG\r\n\x1a\n");
+    let second: Value = post(url("")).await.unwrap().json().await.unwrap();
+    assert_ne!(
+        second["name"], first["name"],
+        "every playthrough gets its own cover"
+    );
+    // save the first: from now on it comes back instead of a new one
+    let saved: Value = post(url(&format!("/{name}/save")))
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    assert_eq!(saved["saved"], true);
+    let again = post(url("")).await.unwrap();
+    assert_eq!(again.status().as_u16(), 200);
+    assert_eq!(again.json::<Value>().await.unwrap()["name"], name.as_str());
+    let fresh = post(url("?fresh=1")).await.unwrap();
+    assert_eq!(
+        fresh.status().as_u16(),
+        201,
+        "?fresh=1 still makes a new one"
+    );
+    // pruning keeps the newest 2 unsaved + the saved one
+    let list = s.get("/api/projects/longing/covers").await.1;
+    assert_eq!(list["saved"]["name"], name.as_str());
+    assert_eq!(list["recent"].as_array().unwrap().len(), 3);
+    // unsave: new covers again
+    let del = http.delete(url("/saved")).send().await.unwrap();
+    assert_eq!(del.status().as_u16(), 204);
+    assert_eq!(post(url("")).await.unwrap().status().as_u16(), 201);
+    // hostile names never reach the filesystem
+    for bad in [
+        "cover-..%2F..%2Fproject.json",
+        "project.json",
+        "cover-A.png",
+    ] {
+        let r = http.get(url(&format!("/{bad}"))).send().await.unwrap();
+        assert!(
+            matches!(r.status().as_u16(), 400 | 404),
+            "{bad} -> {}",
+            r.status()
+        );
+    }
+    assert_eq!(
+        post(url("/cover-1-2.png/save"))
+            .await
+            .unwrap()
+            .status()
+            .as_u16(),
+        404
+    );
+    // covers never touch the song
+    assert_eq!(s.log_lines().len(), last() as usize);
+}

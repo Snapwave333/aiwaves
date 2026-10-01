@@ -184,3 +184,25 @@ CLI: `aiwaves synth info | presets | params [--match T] | render PRESET --out F 
 [--transpose N] [--secs S] | render-device PROJECT TRACK DEVICE --out F`. Environment:
 `AIWAVES_SURGE_VST3` (the plugin binary), `AIWAVES_SURGE_ENGINE` (the script),
 `AIWAVES_PYTHON` (interpreter with pedalboard).
+
+## 10. Cover art (v0.3)
+
+Every playthrough gets new generative cover art, made from the song itself (its colours, key,
+sections, chords and waveform) by `engines/art/cover_art.py` (Python + Pillow) with a fresh random
+seed, unless the viewer has **saved** one: then the saved cover is shown on every playthrough until
+it is unsaved. Covers are a *viewer preference*, not song state: they never touch `project.json` or
+`events.jsonl`, so these are the only routes a viewer may call without the token. Files live in
+`<project>/covers/` (at most 30 unsaved covers are kept; older ones are pruned).
+
+| Method | Path | Result |
+|---|---|---|
+| POST | `/api/projects/{id}/covers` | a playthrough starts: `201 Cover` (new) — or `200 Cover` (the saved one, if any; `?fresh=1` forces a new one) |
+| GET | `/api/projects/{id}/covers` | `{ "saved": Cover \| null, "recent": [Cover, …] }` newest first |
+| GET | `/api/projects/{id}/covers/{name}` | the PNG (`name` must match `^cover-[0-9a-z-]{1,64}\.png$`) |
+| POST | `/api/projects/{id}/covers/{name}/save` | `200 Cover` with `saved: true` (replaces any previously saved cover) |
+| DELETE | `/api/projects/{id}/covers/saved` | `204`: nothing saved; the next playthrough generates again |
+
+`Cover`: `{ "name": "cover-…png", "url": "/api/projects/{id}/covers/cover-…png", "seed": 123,
+"saved": false, "palette": ["#rrggbb", …], "created": "RFC 3339" }`. Generation takes about a
+second; the server gives up after 30 s (`503 { "error": … }`). Mock/offline mode: the frontend
+draws its own placeholder art.

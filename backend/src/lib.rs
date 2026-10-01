@@ -3,6 +3,7 @@
 
 pub mod apply;
 pub mod cli;
+pub mod covers;
 pub mod model;
 pub mod server;
 pub mod store;

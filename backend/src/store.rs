@@ -165,6 +165,11 @@ impl ProjectHandle {
         self.dir.join("audio")
     }
 
+    /// Generated cover art (a viewer preference, CONTRACT §10).
+    pub fn covers_dir(&self) -> PathBuf {
+        self.dir.join("covers")
+    }
+
     pub fn history(&self) -> Value {
         fs::read_to_string(self.dir.join("history.json"))
             .ok()
