@@ -3,7 +3,7 @@
 // Closing the app stops the server. Agents on this machine drive the same server through the
 // `aiwaves` CLI with the token written to <userData>/agent-token.txt (menu: Copy agent token).
 
-const { app, BrowserWindow, Menu, clipboard, dialog, shell } = require('electron');
+const { app, BrowserWindow, Menu, clipboard, dialog, session, shell } = require('electron');
 const { spawn } = require('node:child_process');
 const crypto = require('node:crypto');
 const fs = require('node:fs');
@@ -119,7 +119,51 @@ function menu(data) {
   ]);
 }
 
+// Shown while the server starts: no remote content, no scripts.
+const BOOT_SCREEN = `<!doctype html><meta charset="utf-8"><title>AIWaves</title><style>
+html,body{margin:0;height:100%;background:#07090d;color:#cfe9ff;font:600 12px/1.4 'Segoe UI',sans-serif;
+  display:grid;place-items:center;-webkit-app-region:drag;overflow:hidden}
+.c{display:grid;justify-items:center;gap:22px}
+.hex{width:92px;height:106px;background:linear-gradient(160deg,#00e5ff,#b14dff);
+  clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);filter:drop-shadow(0 0 18px #00e5ff);
+  animation:b 2.4s ease-in-out infinite}
+.hex::after{content:'';position:absolute}
+h1{margin:0;font-size:22px;letter-spacing:.42em;padding-left:.42em;color:#e8f6ff}
+.bar{width:260px;height:3px;background:#151a22;overflow:hidden}
+.bar i{display:block;width:40%;height:100%;background:#00e5ff;box-shadow:0 0 12px #00e5ff;animation:s 1.2s ease-in-out infinite}
+p{margin:0;letter-spacing:.3em;color:#6b7a90}
+@keyframes b{50%{filter:drop-shadow(0 0 30px #b14dff)}}@keyframes s{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style><div class="c"><div class="hex"></div><h1>AIWAVES</h1><div class="bar"><i></i></div><p>INITIALIZING ENGINE</p></div>`;
+
+function lockDown() {
+  // the workspace needs no camera, microphone, location, notifications...: deny every request
+  session.defaultSession.setPermissionRequestHandler((_wc, _perm, cb) => cb(false));
+  session.defaultSession.setPermissionCheckHandler(() => false);
+  app.on('web-contents-created', (_e, wc) => {
+    wc.on('will-attach-webview', (ev) => ev.preventDefault());
+  });
+}
+
 async function createWindow() {
+  lockDown();
+  win = new BrowserWindow({
+    width: 1600,
+    height: 980,
+    minWidth: 1024,
+    minHeight: 680,
+    title: 'AIWaves',
+    backgroundColor: '#07090d',
+    // Alienware-style chrome: no OS title bar; the workspace's own top bar is the title bar
+    // (it marks itself draggable when it sees Electron), with native controls tinted to match
+    titleBarStyle: 'hidden',
+    titleBarOverlay: { color: '#07090d', symbolColor: '#00e5ff', height: 40 },
+    icon: path.join(__dirname, 'build/icon.png'),
+    show: false,
+    webPreferences: { contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false },
+  });
+  win.once('ready-to-show', () => win.show());
+  await win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(BOOT_SCREEN)}`);
   let started;
   try {
     started = await startServer();
@@ -130,30 +174,26 @@ async function createWindow() {
   }
   const origin = `http://127.0.0.1:${started.port}`;
   Menu.setApplicationMenu(menu(started.data));
-  win = new BrowserWindow({
-    width: 1600,
-    height: 980,
-    minWidth: 1024,
-    minHeight: 680,
-    title: 'AIWaves',
-    backgroundColor: '#05070d',
-    icon: path.join(__dirname, 'build/icon.png'),
-    show: false,
-    webPreferences: { contextIsolation: true, sandbox: true, nodeIntegration: false, spellcheck: false },
+  // a crashed page reloads instead of leaving a dead window
+  win.webContents.on('render-process-gone', (_e, details) => {
+    log?.write(`[desktop] page process gone (${details.reason}); reloading
+`);
+    if (!app.isQuitting) win.loadURL(`${origin}/`);
   });
-  win.once('ready-to-show', () => win.show());
   // the window only ever shows the local server; anything else opens in the user's browser
   win.webContents.on('will-navigate', (e, url) => {
-    if (!url.startsWith(origin)) {
+    if (!url.startsWith(`${origin}/`)) {
       e.preventDefault();
       if (/^https?:\/\//.test(url)) shell.openExternal(url);
     }
   });
   win.webContents.setWindowOpenHandler(({ url }) => {
-    if (/^https?:\/\//.test(url) && !url.startsWith(origin)) shell.openExternal(url);
+    if (/^https?:\/\//.test(url) && !url.startsWith(`${origin}/`)) shell.openExternal(url);
     return { action: 'deny' };
   });
   console.log(`AIWaves workspace: ${origin}/  data: ${started.data}`);
+  log?.write(`[desktop] workspace at ${origin}/ (data: ${started.data})
+`);
   await win.loadURL(`${origin}/`);
 }
 

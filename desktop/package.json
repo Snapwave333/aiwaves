@@ -13,5 +13,45 @@
   "devDependencies": {
     "electron": "^44.5.1",
     "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "dev.aiwaves.desktop",
+    "productName": "AIWaves",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "build/icon.png"
+    ],
+    "extraResources": [
+      {
+        "from": "../backend/target/release/aiwaves.exe",
+        "to": "bin/aiwaves.exe"
+      },
+      {
+        "from": "../frontend/dist/frontend/browser",
+        "to": "frontend"
+      },
+      {
+        "from": "../engines",
+        "to": "engines",
+        "filter": [
+          "**/*.py",
+          "**/*.json"
+        ]
+      },
+      {
+        "from": "../fixtures",
+        "to": "fixtures"
+      }
+    ],
+    "win": {
+      "target": "portable",
+      "icon": "build/icon.ico"
+    },
+    "portable": {
+      "artifactName": "AIWaves-${version}-portable.exe"
+    }
   }
 }
