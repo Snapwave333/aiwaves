@@ -1,0 +1,17 @@
+{
+  "name": "aiwaves-desktop",
+  "productName": "AIWaves",
+  "version": "0.1.0",
+  "description": "AIWaves desktop: the agent-first DAW's read-only workspace, with its server built in",
+  "main": "main.js",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "^44.5.1",
+    "electron-builder": "^26.15.3"
+  }
+}

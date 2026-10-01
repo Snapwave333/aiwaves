@@ -11,8 +11,8 @@ use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use serde_json::{Value, json};
 use std::path::{Path as FsPath, PathBuf};
-use std::process::{Command as Proc, Stdio};
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::process::Command as Proc;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tokio::sync::Mutex;
 use tower::ServiceExt;
 use tower_http::services::ServeFile;
@@ -110,40 +110,20 @@ fn all_covers(dir: &FsPath) -> Vec<String> {
 
 /// Run the generator with a timeout; Ok(its JSON) or Err(message).
 fn generate(project_json: &FsPath, out: &FsPath, seed: u32) -> Result<Value, String> {
-    let python = std::env::var("AIWAVES_PYTHON").unwrap_or_else(|_| "python".into());
     let engine = engine_path();
     if !engine.exists() {
         return Err(format!("cover engine not found at {}", engine.display()));
     }
-    let mut child = Proc::new(&python)
-        .arg(&engine)
+    let mut cmd = Proc::new(crate::synth::python());
+    cmd.arg(&engine)
         .arg(project_json)
         .arg("--out")
         .arg(out)
         .arg("--seed")
         .arg(seed.to_string())
-        .env("PYTHONIOENCODING", "utf-8")
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .map_err(|e| format!("cannot run {python}: {e}"))?;
-    let start = Instant::now();
-    loop {
-        match child.try_wait() {
-            Ok(Some(_)) => break,
-            Ok(None) if start.elapsed() > GENERATE_TIMEOUT => {
-                let _ = child.kill();
-                let _ = child.wait();
-                return Err(format!(
-                    "cover generation took over {}s",
-                    GENERATE_TIMEOUT.as_secs()
-                ));
-            }
-            Ok(None) => std::thread::sleep(Duration::from_millis(25)),
-            Err(e) => return Err(e.to_string()),
-        }
-    }
-    let out = child.wait_with_output().map_err(|e| e.to_string())?;
+        .env("PYTHONIOENCODING", "utf-8");
+    let out = crate::synth::run_with_timeout(cmd, GENERATE_TIMEOUT)
+        .map_err(|e| format!("cover generation: {e}"))?;
     let text = |b: &[u8]| String::from_utf8_lossy(b).trim().to_string();
     if !out.status.success() {
         let err: Value = serde_json::from_str(&text(&out.stderr))
