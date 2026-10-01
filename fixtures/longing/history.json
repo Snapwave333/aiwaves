@@ -1,6 +1,42 @@
 {
  "changelog": [
   {
+   "version": "5.1",
+   "date": "2026-09-30",
+   "title": "Film VFX from Surge XT; a cleaner mix",
+   "groups": [
+    {
+     "name": "Added",
+     "items": [
+      "Trailer-grade sound design synthesised with Surge XT (free, open-source, Serum-class), through AIWaves' synth engine: a braam + sub drop + impact on each drop's downbeat (about -6 dB against the mix there: huge, the groove survives), Doppler whooshes flying left-to-right into the drops and right-to-left out of them (-16 dB), an impact on her peak (-11 dB), tuned glitch shards through the drops (-26 dB), an evolving drone under the space intro and outro (-15 dB), and a long low braam with the last hit.",
+      "Stems: `LONGING_STEMS=1` writes each group (vocal, drums, bass, zither, handpan, chops, strings, choir, story, vfx) for analysis."
+     ]
+    },
+    {
+     "name": "Changed",
+     "items": [
+      "Mix, measured: her voice was already on top while she sings (+6 to +9 dB in her body), but only +0.6 dB at 1.6-3.2 kHz, where the strings sat. The strings now dip ~4 dB at 250 Hz and 2.5 kHz while she sings: her margin there is +2.4 dB. The monk layer gets a low cut. Mono check (phone speakers): nothing cancels; the widest layer, the choir, loses 2.8 dB."
+     ]
+    }
+   ]
+  },
+  {
+   "version": "5.0",
+   "date": "2026-09-30",
+   "title": "A film behind the song (Tripp St.)",
+   "groups": [
+    {
+     "name": "Added",
+     "items": [
+      "A cinematic story runs behind the music, scene by scene, made only of real recordings (sample-pi CC0 textures, NASA public-domain audio), far back: low-passed for distance, in a hall, slowly moving. Intro: space (a shuttle far away, a lunar surface). Verse 1: night on earth (a haunted hum, a glass hum, one crow far left). Into drop 1: a dark whoosh circling into the downbeat. Drop 1: distant sonic booms under the crashes. Verse 2: a memory (a piano, reversed, far away). Drop 2: a cinematic boom. Outro: the shuttle recedes, back in space.",
+      "Ear-candy transients: glass pings tuned to each bar's chord, between the beats (one every 4 bars in verse 1, two per bar in the drops).",
+      "Levels: the background 20-24 dB under the mix, the impacts about 16 dB under: felt, never in her way.",
+      "The render now writes `arrangement.json`: every note, hit and vocal piece it placed (the AIWaves arrangement view draws it)."
+     ]
+    }
+   ]
+  },
+  {
    "version": "4.1",
    "date": "2026-09-30",
    "title": "Drum and bass detail",
@@ -197,6 +233,52 @@
   }
  ],
  "commits": [
+  {
+   "hash": "bcd2d221f16b1b1ae587e339d548aef2891e877e",
+   "short": "bcd2d22",
+   "date": "2026-09-30T21:30:57-06:00",
+   "author": "Hermes Agent",
+   "subject": "Longing v5.1: Surge XT film VFX via the AIWaves engine; stems; strings carve under her",
+   "body": "",
+   "files": [
+    "samples/vocals_new/longing/CHANGELOG.md",
+    "samples/vocals_new/longing/arrangement.json",
+    "samples/vocals_new/longing/longing_song.map.js",
+    "samples/vocals_new/longing/longing_song.wav",
+    "scripts/make_longing_song.py"
+   ],
+   "added": 110,
+   "removed": 25
+  },
+  {
+   "hash": "603439c0b18311a7f2b156afcc5665d967ecc928",
+   "short": "603439c",
+   "date": "2026-09-30T21:00:48-06:00",
+   "author": "Hermes Agent",
+   "subject": "Longing v5.0: a cinematic story behind the song (Tripp St.); arrangement log",
+   "body": "Real recordings (sample-pi CC0, NASA PD) as scenes per section, far back,\nplus chord-tuned glass pings and impacts on the drops. The renderer logs\nevery placed note/hit/vocal piece to arrangement.json for AIWaves.",
+   "files": [
+    "samples/vocals_new/longing/CHANGELOG.md",
+    "samples/vocals_new/longing/longing_song.map.js",
+    "samples/vocals_new/longing/longing_song.wav",
+    "scripts/make_longing_song.py"
+   ],
+   "added": 146,
+   "removed": 4
+  },
+  {
+   "hash": "c0781370cea31318484ed2ea4d1d668215bcd8bb",
+   "short": "c078137",
+   "date": "2026-09-30T20:49:36-06:00",
+   "author": "Hermes Agent",
+   "subject": "Export the full arrangement for AIWaves: every placed note and vocal piece (with waveforms)",
+   "body": "",
+   "files": [
+    "samples/vocals_new/longing/arrangement.json"
+   ],
+   "added": 1,
+   "removed": 0
+  },
   {
    "hash": "7ed4f1a5e1b4c23186860ea1c145d34204630593",
    "short": "7ed4f1a",

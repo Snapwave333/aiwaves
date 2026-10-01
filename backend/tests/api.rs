@@ -23,6 +23,18 @@ fn last() -> u64 {
     .count() as u64
 }
 
+/// The fixture's project.json as JSON (counts in tests come from here: the demo grows with the song).
+fn fixture_project() -> Value {
+    serde_json::from_str(
+        &std::fs::read_to_string(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../fixtures/longing/project.json"
+        ))
+        .unwrap(),
+    )
+    .unwrap()
+}
+
 /// The fixture's latest `version.tag` (what a new event is stamped with).
 fn last_version() -> String {
     let text = std::fs::read_to_string(concat!(
@@ -190,14 +202,24 @@ async fn get_project_and_unknown_project() {
     assert_eq!(status, 200);
     assert_eq!(p["schema"], "aiwaves/project@1");
     assert_eq!(p["version"], last());
-    assert_eq!(p["tracks"].as_array().unwrap().len(), 10);
+    let fixture = fixture_project();
+    assert_eq!(
+        p["tracks"].as_array().unwrap().len(),
+        fixture["tracks"].as_array().unwrap().len()
+    );
     let devices: usize = p["tracks"]
         .as_array()
         .unwrap()
         .iter()
         .map(|t| t["devices"].as_array().unwrap().len())
         .sum();
-    assert_eq!(devices, 42);
+    let want: usize = fixture["tracks"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|t| t["devices"].as_array().unwrap().len())
+        .sum();
+    assert_eq!(devices, want);
     assert_eq!(s.get("/api/projects/nope").await.0, 404);
     assert_eq!(s.get("/api/nope").await.0, 404);
 }

@@ -60,7 +60,7 @@ describe('workspace views', () => {
     const f = TestBed.createComponent(MixerComponent);
     await f.whenStable();
     const el = f.nativeElement as HTMLElement;
-    expect(el.querySelectorAll('.strip').length).toBe(10);
+    expect(el.querySelectorAll('.strip').length).toBe(longing().project.tracks.length);
     expect(el.querySelector('[data-path="tracks.drums.mixer.volume_db"]')!.textContent).toContain(
       '-3.0 dB',
     );
@@ -71,14 +71,21 @@ describe('workspace views', () => {
     const f = TestBed.createComponent(ArrangementComponent);
     await f.whenStable();
     const el = f.nativeElement as HTMLElement;
-    expect(el.querySelectorAll('.track-row').length).toBe(10);
+    expect(el.querySelectorAll('.track-row').length).toBe(longing().project.tracks.length);
     expect(el.querySelectorAll('.locator').length).toBe(6);
     expect(el.querySelector('.locator-flag')!.textContent).toBe('intro');
     expect(el.querySelector('[data-path="tracks.vocal.clips.v1"]')).toBeTruthy();
     expect(el.querySelector('.track-row.ghost')).toBeNull();
     store.seekSeq(20, false);
     await f.whenStable();
-    expect(el.querySelectorAll('.track-row.ghost').length).toBe(5); // strings, zither, chops, handpan, doubles
+    // every track the build log adds after seq 20 (strings, zither, chops, handpan, doubles, vfx, ...)
+    const { project, events } = longing();
+    const later = new Set(
+      events.filter((e) => e.seq > 20 && e.verb === 'track.add').map((e) => String(e.target).split('.')[1]),
+    );
+    expect(el.querySelectorAll('.track-row.ghost').length).toBe(
+      project.tracks.filter((tr) => later.has(tr.id)).length,
+    );
   });
 
   it('arrangement draws clip contents on one canvas per lane, not a node per note', async () => {
