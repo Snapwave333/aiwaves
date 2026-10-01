@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ev, tiny } from '../testing/fixtures';
-import { ApiService } from './api.service';
+import { ApiService, STALE_MS } from './api.service';
 import { APP_CONFIG, readConfig } from './config';
 import { LinkStatus } from './data-source';
 import { AiEvent, Project } from './model';
@@ -88,6 +88,49 @@ describe('ApiService', () => {
     expect(FakeSocket.all[2].closed).toBe(true);
   });
 
+  it('drops malformed live messages instead of passing them on', () => {
+    const got: string[] = [];
+    api.connect('longing', {
+      hello: (p: Project) => got.push(`hello ${p.id}`),
+      event: (e: AiEvent) => got.push(`event ${e.seq}`),
+      status: () => undefined,
+    });
+    const s = FakeSocket.all[0];
+    const send = (x: unknown) => s.onmessage!({ data: JSON.stringify(x) });
+    send({ type: 'event', event: { ...ev(7, 'note', null, null, null), seq: -1 } });
+    send({ type: 'event', event: { ...ev(8, 'note', null, null, null), verb: 42 } });
+    send({ type: 'event', event: { seq: 9 } });
+    send({ type: 'event' });
+    send({ type: 'hello', project: { id: 'x' }, last_seq: 3 });
+    send({ type: 'hello', project: tiny(), last_seq: 'many' });
+    send(null);
+    send({ type: 'event', event: ev(10, 'note', null, null, '<img src=x onerror=alert(1)>') });
+    expect(got).toEqual(['event 10']);
+  });
+
+  it('gives up on a silent socket (no message, not even a ping) and reconnects', () => {
+    vi.useFakeTimers();
+    const statuses: LinkStatus[] = [];
+    api.connect('longing', {
+      hello: () => undefined,
+      event: () => undefined,
+      status: (s) => statuses.push(s),
+    });
+    const s = FakeSocket.all[0];
+    s.onopen!();
+    // pings keep it alive
+    for (let i = 0; i < 4; i++) {
+      vi.advanceTimersByTime(20_000);
+      s.onmessage!({ data: JSON.stringify({ type: 'ping' }) });
+    }
+    expect(FakeSocket.all.length).toBe(1);
+    vi.advanceTimersByTime(STALE_MS);
+    expect(s.closed).toBe(true);
+    expect(statuses.at(-1)).toBe('reconnecting');
+    vi.advanceTimersByTime(1000);
+    expect(FakeSocket.all.length).toBe(2);
+  });
+
   it('pages through /events?since= until a short page', async () => {
     const urls: string[] = [];
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
@@ -111,7 +154,19 @@ describe('ApiService', () => {
     expect(await api.health()).toBe(false);
   });
 
-  it('builds the audio URL from audio.master', () => {
+  it('builds the audio URL from audio.master, encoded, refusing to climb out of the project', () => {
     expect(api.audioUrl(tiny())).toBe('http://127.0.0.1:8787/api/projects/tiny/audio/master.wav');
+    const p = tiny();
+    p.audio.master = 'audio/take 2#.wav';
+    expect(api.audioUrl(p)).toBe('http://127.0.0.1:8787/api/projects/tiny/audio/take%202%23.wav');
+    p.audio.master = '../../secrets.wav';
+    expect(api.audioUrl(p)).toBeNull();
+  });
+
+  it('skips malformed events in /events pages', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify([ev(1, 'note', null, null, null), { seq: 'two' }, null])),
+    );
+    expect((await api.events('longing', 0)).map((e) => e.seq)).toEqual([1]);
   });
 });

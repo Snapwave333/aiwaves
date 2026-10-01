@@ -1,0 +1,292 @@
+// The app shell: top app bar (the title bar in the desktop app), the workspace grid, the side
+// sheet and the responsive stacking.
+@use './mixins' as m;
+
+app-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-height: 0;
+}
+
+// --- top app bar -----------------------------------------------------------------------------------
+
+.app-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex: 0 0 var(--aw-appbar-h);
+  height: var(--aw-appbar-h);
+  padding: 0 var(--sp-2) 0 var(--sp-4);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--aw-accent) 6%, transparent), transparent 40%),
+    var(--aw-titlebar);
+  border-bottom: 1px solid var(--aw-line-soft);
+  z-index: 10;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+
+  .logo {
+    width: 26px;
+    height: 26px;
+    filter: drop-shadow(0 0 6px var(--aw-accent-glow));
+  }
+
+  .logo-hex {
+    fill: none;
+    stroke: var(--aw-accent);
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+
+  .logo-wave {
+    fill: none;
+    stroke: var(--aw-magenta);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+
+  .brand-name {
+    font: 700 var(--aw-fs-lg) / 1 var(--aw-font-display);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+}
+
+.bar-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--aw-line);
+  transform: skewX(-20deg);
+}
+
+.app-song {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+
+  .app-song-title {
+    font: 600 var(--aw-fs-sm) / 1.2 var(--aw-font-display);
+    letter-spacing: var(--aw-track-label);
+    text-transform: uppercase;
+  }
+
+  .app-song-artist {
+    color: var(--aw-dim);
+    font-size: var(--aw-fs-2xs);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.app-spacer {
+  flex: 1;
+}
+
+.status-chip {
+  --tone: var(--aw-faint);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 26px;
+  padding: 0 var(--sp-3) 0 var(--sp-2);
+  font: 600 var(--aw-fs-2xs) / 1 var(--aw-font-display);
+  letter-spacing: var(--aw-track-wide);
+  color: var(--tone);
+  @include m.chamfer(
+    var(--aw-cut-sm),
+    color-mix(in srgb, var(--tone) 45%, transparent),
+    color-mix(in srgb, var(--tone) 8%, var(--aw-panel))
+  );
+  white-space: nowrap;
+
+  .status-hex {
+    width: 10px;
+    height: 10px;
+    background: var(--tone);
+    @include m.hex;
+  }
+
+  &.status-open {
+    --tone: var(--aw-live);
+
+    .status-hex {
+      animation: aw-breathe 2.4s ease-in-out infinite;
+    }
+  }
+  &.status-reconnecting {
+    --tone: var(--aw-warn);
+  }
+  &.status-demo {
+    --tone: var(--aw-violet-text);
+  }
+}
+
+// AlienFX light bar along the bottom edge of the app bar; sweeps on every agent change
+.light-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--aw-accent) 45%, transparent) 20%,
+    color-mix(in srgb, var(--aw-magenta) 45%, transparent) 80%,
+    transparent
+  );
+
+  .mat-mdc-progress-bar {
+    --mat-progress-bar-active-indicator-height: 2px;
+    --mat-progress-bar-track-height: 2px;
+  }
+}
+
+.light-sweep {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 30%;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, var(--aw-signal), var(--aw-accent), transparent);
+  box-shadow: 0 0 12px var(--aw-signal);
+}
+
+// The desktop app: a frameless window whose title bar is this app bar. The window controls are
+// overlaid at the top right (Electron titleBarOverlay, 40 px tall, ~140 px wide).
+.is-electron .app-bar {
+  flex-basis: 40px;
+  height: 40px;
+  padding-right: 144px;
+  background: var(--aw-titlebar);
+  -webkit-app-region: drag;
+
+  button,
+  a,
+  input,
+  [role='button'],
+  [role='status'],
+  .mat-mdc-button-base {
+    -webkit-app-region: no-drag;
+  }
+}
+
+// --- workspace grid ---------------------------------------------------------------------------------
+
+.workspace {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  gap: var(--sp-2);
+  padding: var(--sp-2);
+  grid-template-columns: minmax(0, 1fr) var(--aw-sheet-w);
+  grid-template-rows: auto minmax(160px, 1fr) auto clamp(212px, 28vh, 340px);
+  grid-template-areas:
+    'player sheet'
+    'arr sheet'
+    'replay sheet'
+    'bottom bottom';
+
+  &.sheet-closed {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'player'
+      'arr'
+      'replay'
+      'bottom';
+  }
+}
+
+.area-player {
+  grid-area: player;
+}
+
+.area-arr {
+  grid-area: arr;
+}
+
+.area-replay {
+  grid-area: replay;
+}
+
+.area-sheet {
+  grid-area: sheet;
+  display: grid;
+  grid-template-rows: minmax(0, 3fr) minmax(0, 2fr);
+  gap: var(--sp-2);
+  min-height: 0;
+
+  &[hidden] {
+    display: none;
+  }
+}
+
+.area-bottom {
+  grid-area: bottom;
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  gap: var(--sp-2);
+  min-height: 0;
+
+  > .mixer {
+    max-width: 55vw;
+  }
+}
+
+.workspace.replay-active .area-replay {
+  @include m.chamfer(var(--aw-cut-sm), var(--aw-accent));
+}
+
+@media (max-width: 1000px) {
+  app-root {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .app-song .app-song-artist {
+    display: none;
+  }
+
+  .workspace,
+  .workspace.sheet-closed {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .area-arr {
+    height: 440px;
+  }
+
+  .area-sheet {
+    grid-template-rows: 380px 320px;
+  }
+
+  .area-bottom {
+    display: flex;
+    flex-direction: column;
+
+    > .mixer {
+      max-width: none;
+      height: 300px;
+    }
+
+    > .devices {
+      min-height: 230px;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-chip.status-open .status-hex {
+    animation: none;
+  }
+}

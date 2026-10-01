@@ -12,10 +12,13 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
+import { MatIconButton } from '@angular/material/button';
+import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
 import { Animator } from '../core/animator.service';
 import { AudioService } from '../core/audio.service';
 import { Clip, Track } from '../core/model';
-import { barAt, beatsPerBar, formatDb, secondsPerBar } from '../core/time';
+import { beatsPerBar, formatDb, secondsPerBar } from '../core/time';
 import { WorkspaceStore } from '../core/workspace.store';
 import {
   DrumLane,
@@ -36,44 +39,64 @@ import {
 } from './clip-render';
 import { ClipComponent } from './clip.component';
 import { LaneCanvasDirective } from './lane-canvas.directive';
-import { trackLevel } from './levels';
+import { MeterDirective, PlayheadDirective } from '../ui/live-style.directives';
+import { Playhead } from '../core/playhead';
 
 const HEAD_W = 188;
 const RULER_H = 26;
 const CHORD_H = 20;
 const BUTTON_ZOOM = 1.5;
-const SECTION_COLORS = ['#5b7fa6', '#8a6fb0', '#b06f7c', '#6fa684', '#a69a5b', '#5b9aa6'];
+/** Locator colours: the AlienFX palette, bright enough for dark text on the flags. */
+const SECTION_COLORS = ['#00e5ff', '#b14dff', '#ff2bd6', '#3dffa2', '#ffc24d', '#4c8dff'];
 
 @Component({
   selector: 'aw-arrangement',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ClipComponent, LaneCanvasDirective],
+  imports: [
+    ClipComponent,
+    LaneCanvasDirective,
+    MatIconButton,
+    MatIcon,
+    MatTooltip,
+    MeterDirective,
+    PlayheadDirective,
+  ],
   host: { class: 'panel arrangement', role: 'region', 'aria-label': 'Arrangement' },
   template: `
     <div class="panel-bar">
+      <mat-icon aria-hidden="true">view_timeline</mat-icon>
       <h2 class="panel-title">Arrangement</h2>
       <span class="panel-sub">{{ ppb().toFixed(1) }} px/bar</span>
       <div class="panel-tools">
         <button
+          mat-icon-button
+          class="icon-btn-sm"
           type="button"
-          class="mini-btn"
           (click)="zoomCenter(1 / buttonZoom)"
           aria-label="Zoom out"
-          title="Zoom out (Ctrl/Cmd + wheel)"
+          matTooltip="Zoom out (Ctrl/Cmd + wheel)"
         >
-          −
+          <mat-icon>zoom_out</mat-icon>
         </button>
         <button
+          mat-icon-button
+          class="icon-btn-sm"
           type="button"
-          class="mini-btn"
           (click)="zoomCenter(buttonZoom)"
           aria-label="Zoom in"
-          title="Zoom in (Ctrl/Cmd + wheel)"
+          matTooltip="Zoom in (Ctrl/Cmd + wheel)"
         >
-          +
+          <mat-icon>zoom_in</mat-icon>
         </button>
-        <button type="button" class="mini-btn" (click)="fit()" title="Fit the whole song">
-          Fit
+        <button
+          mat-icon-button
+          class="icon-btn-sm"
+          type="button"
+          (click)="fit()"
+          aria-label="Fit the whole song"
+          matTooltip="Fit the whole song"
+        >
+          <mat-icon>fit_screen</mat-icon>
         </button>
       </div>
     </div>
@@ -104,13 +127,13 @@ const SECTION_COLORS = ['#5b7fa6', '#8a6fb0', '#b06f7c', '#6fa684', '#a69a5b', '
                   [style.left.px]="s.start_bar * ppb()"
                   [style.width.px]="(s.end_bar - s.start_bar) * ppb()"
                   [style.--sec]="sectionColor(i)"
-                  [class.current]="s === currentSection()"
+                  [class.current]="s === playhead.section()"
                 ></div>
                 <div
                   class="locator"
                   [style.left.px]="s.start_bar * ppb()"
                   [style.--sec]="sectionColor(i)"
-                  [class.current]="s === currentSection()"
+                  [class.current]="s === playhead.section()"
                 >
                   <span class="locator-flag">{{ s.name }}</span>
                 </div>
@@ -121,7 +144,7 @@ const SECTION_COLORS = ['#5b7fa6', '#8a6fb0', '#b06f7c', '#6fa684', '#a69a5b', '
               @for (b of barLabels(); track b) {
                 <span class="bar-num" [style.left.px]="b * ppb()">{{ b + 1 }}</span>
               }
-              <span class="lane-playhead" [style.left.px]="playheadBar() * ppb()"></span>
+              <span class="lane-playhead" [awPlayhead]="ppb()"></span>
             </div>
           </div>
           <div class="arr-row chord-row" [style.top.px]="rulerH" [style.height.px]="chordH">
@@ -131,7 +154,7 @@ const SECTION_COLORS = ['#5b7fa6', '#8a6fb0', '#b06f7c', '#6fa684', '#a69a5b', '
                 <span
                   class="chord"
                   [style.left.px]="c.bar * ppb()"
-                  [class.current]="c.bar === currentBarInt()"
+                  [class.current]="c.bar === playhead.barIndex()"
                   >{{ c.name }}</span
                 >
               }
@@ -160,7 +183,7 @@ const SECTION_COLORS = ['#5b7fa6', '#8a6fb0', '#b06f7c', '#6fa684', '#a69a5b', '
               >
                 <path [attr.d]="wavePath()" />
               </svg>
-              <span class="lane-playhead" [style.left.px]="playheadBar() * ppb()"></span>
+              <span class="lane-playhead" [awPlayhead]="ppb()"></span>
             </div>
           </div>
 
@@ -204,9 +227,7 @@ const SECTION_COLORS = ['#5b7fa6', '#8a6fb0', '#b06f7c', '#6fa684', '#a69a5b', '
                   role="img"
                   >S</span
                 >
-                <span class="head-meter" aria-hidden="true"
-                  ><span [style.height.%]="meter(t) * 100"></span
-                ></span>
+                <span class="head-meter" aria-hidden="true"><span [awMeter]="t"></span></span>
               </div>
               <div class="arr-lane clips-lane" [style.width.px]="lanesWidth()">
                 @for (c of t.clips; track c.id) {
@@ -217,7 +238,7 @@ const SECTION_COLORS = ['#5b7fa6', '#8a6fb0', '#b06f7c', '#6fa684', '#a69a5b', '
                     [color]="c.color ?? t.color"
                     [ppb]="ppb()"
                     [ghost]="store.ghosts().has(cp)"
-                    [playing]="isUnderPlayhead(c)"
+                    [playing]="sounding().has(c)"
                   />
                 }
                 @if (t.clips.length) {
@@ -254,11 +275,20 @@ const SECTION_COLORS = ['#5b7fa6', '#8a6fb0', '#b06f7c', '#6fa684', '#a69a5b', '
               ></div>
             </div>
           }
-          <div
-            class="playhead"
-            [style.left.px]="headW + playheadBar() * ppb()"
-            aria-hidden="true"
-          ></div>
+          <div class="playhead" [awPlayhead]="ppb()" [offset]="headW" aria-hidden="true"></div>
+        </div>
+      } @else if (store.loadError()) {
+        <div class="stage-empty" role="alert">
+          <mat-icon aria-hidden="true">error</mat-icon>
+          <span>The project couldn't be loaded.</span>
+          <span class="stage-empty-sub">{{ store.loadError() }}</span>
+        </div>
+      } @else {
+        <div class="stage-empty" role="status">
+          <mat-icon class="spin" aria-hidden="true">progress_activity</mat-icon>
+          <span>{{
+            store.mode() === 'connecting' ? 'Looking for the AIWaves backend…' : 'Loading the song…'
+          }}</span>
         </div>
       }
     </div>
@@ -268,6 +298,7 @@ export class ArrangementComponent {
   protected readonly store = inject(WorkspaceStore);
   protected readonly animator = inject(Animator);
   private readonly audio = inject(AudioService);
+  protected readonly playhead = inject(Playhead);
   private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
   private readonly scroller = viewChild<ElementRef<HTMLDivElement>>('scroller');
@@ -317,15 +348,19 @@ export class ArrangementComponent {
   protected readonly gainOf = computed(
     () => new Map((this.store.project()?.tracks ?? []).map((t) => [t.id, peakGain(t.clips)])),
   );
-  protected readonly playheadBar = computed(() => {
-    const p = this.store.project();
-    return p ? barAt(p, this.audio.time()) : 0;
-  });
-  protected readonly currentBarInt = computed(() => Math.floor(this.playheadBar()));
-  protected readonly currentSection = computed(() => {
-    const b = this.playheadBar();
-    return this.store.project()?.sections.find((s) => b >= s.start_bar && b < s.end_bar) ?? null;
-  });
+  /** Clips under the playhead while playing; a new set only when the playhead crosses a clip edge. */
+  protected readonly sounding = computed(
+    () => {
+      const out = new Set<Clip>();
+      if (!this.audio.playing()) return out;
+      const b = this.playhead.bar();
+      for (const t of this.store.project()?.tracks ?? [])
+        for (const c of t.clips)
+          if (b >= c.start_bar && b < c.start_bar + c.length_bars) out.add(c);
+      return out;
+    },
+    { equal: (a, b) => a.size === b.size && [...a].every((c) => b.has(c)) },
+  );
   protected readonly barLabels = computed(() => {
     const p = this.store.project();
     if (!p) return [];
@@ -387,7 +422,7 @@ export class ArrangementComponent {
     });
     // keep the playhead in view while playing
     effect(() => {
-      const x = this.playheadBar() * this.ppb();
+      const x = this.playhead.bar() * this.ppb();
       const el = this.scroller()?.nativeElement;
       if (!el || !untracked(this.audio.playing)) return;
       const visible = el.clientWidth - HEAD_W;
@@ -398,16 +433,6 @@ export class ArrangementComponent {
 
   protected sectionColor(i: number): string {
     return SECTION_COLORS[i % SECTION_COLORS.length];
-  }
-
-  protected meter(t: Track): number {
-    const p = this.store.project();
-    return p ? trackLevel(p, t, this.playheadBar(), this.audio.playing(), this.audio.level()) : 0;
-  }
-
-  protected isUnderPlayhead(c: Clip): boolean {
-    const b = this.playheadBar();
-    return this.audio.playing() && b >= c.start_bar && b < c.start_bar + c.length_bars;
   }
 
   // --- lane heights ----------------------------------------------------------------------------

@@ -63,6 +63,28 @@ For the verbs both sides mirror, the result is the same. Where it differs:
 - Track meters aren't measured, because there are no stems. A track shows the master level, scaled
   by its fader, while one of its clips is under the playhead and it isn't muted or soloed out.
 
+## Cover art (section 10)
+
+- The image URL is built from the cover's `name` (checked against
+  `^cover-[0-9a-z-]{1,64}\.png$`) and the encoded project id, not taken from `url`. A cover with
+  any other name is ignored.
+- `POST /covers` waits up to 35 s (the server gives up after 30). Any failure (network, 404 from a
+  backend without covers, 503, a malformed answer) shows local art with a "Local cover art" note;
+  the next playthrough asks the server again.
+- When several requests overlap (play, stop, play), only the latest one's answer is shown.
+- Local art is "saved" per project in `localStorage` (`aiwaves.cover.saved.<id>`); the server's
+  saved cover always wins in live mode.
+
+## Untrusted data
+
+- Events (live or from `/events`) that aren't well-formed (positive integer `seq`, string `verb`,
+  `agent`, `ts`, `reason`, string-or-null `target`) are dropped. A `hello` whose project lacks an
+  id, a positive bpm, tracks or audio is ignored. One bad line in `events.jsonl` drops that line.
+- Track and clip colours are reduced to `#rgb` / `#rrggbb` before they reach style bindings.
+- `audio.master` is encoded segment by segment; `..` or empty segments mean no audio.
+- The WebSocket is treated as dead after 50 s without any message (the server pings every 20 s)
+  and reconnects with the same capped backoff (1 s doubling to 10 s).
+
 ## CORS
 
 The backend allows `http://localhost:4200` only. The default setup doesn't need CORS: `ng serve`

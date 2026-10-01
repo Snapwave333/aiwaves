@@ -1,0 +1,69 @@
+// Shared geometry: chamfered corners, AlienFX edge lighting, hexagons.
+
+// 45-degree cuts on the top-left and bottom-right corners, with a 1 px edge line that follows
+// the cut (a plain border would stop at the clip). `$fill` is the surface colour.
+@mixin chamfer($cut: var(--aw-cut), $edge: var(--aw-line), $fill: var(--aw-panel)) {
+  --cut: #{$cut};
+  border: 1px solid $edge;
+  border-radius: 0;
+  clip-path: polygon(
+    var(--cut) 0,
+    100% 0,
+    100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%,
+    0 100%,
+    0 var(--cut)
+  );
+  background:
+    linear-gradient(
+        to bottom right,
+        transparent 50%,
+        $edge 50%,
+        $edge calc(50% + 1.2px),
+        transparent calc(50% + 1.2px)
+      )
+      top left / var(--cut) var(--cut) no-repeat border-box,
+    linear-gradient(
+        to top left,
+        transparent 50%,
+        $edge 50%,
+        $edge calc(50% + 1.2px),
+        transparent calc(50% + 1.2px)
+      )
+      bottom right / var(--cut) var(--cut) no-repeat border-box,
+    $fill;
+}
+
+// A light strip along the top edge, AlienFX style. Dim at rest; `.lit` (or the breathing rule in
+// _base.scss) brings it up. Lives inside the clip-path, so its glow is never cut off.
+@mixin edge-light($color: var(--aw-accent)) {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    z-index: 7;
+    top: 0;
+    left: var(--cut, 0);
+    right: 18%;
+    height: 2px;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      $color,
+      color-mix(in srgb, $color 45%, transparent) 55%,
+      transparent
+    );
+    box-shadow: 0 0 10px 1px color-mix(in srgb, $color 55%, transparent);
+    opacity: 0.4;
+    transition: opacity var(--aw-med) var(--aw-ease);
+  }
+}
+
+// A flat-topped hexagon.
+@mixin hex {
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+}
+
+// Faint hex grid for large surfaces (static background, no per-frame cost).
+$hex-grid: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='20.785' viewBox='0 0 36 20.785'%3E%3Cpath d='M0 10.392h6l6-10.392h12l6 10.392h6M6 10.392l6 10.392h12l6-10.392' fill='none' stroke='%23b8c6e0' stroke-opacity='.07' stroke-width='.8'/%3E%3C/svg%3E");

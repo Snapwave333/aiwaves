@@ -1,29 +1,58 @@
-<aw-transport />
-@if (store.mode() === 'demo') {
+<aw-app-bar [(sheetOpen)]="sheetOpen" />
+@if (store.mode() === 'demo' && !demoDismissed()) {
   <div class="banner banner-demo" role="status">
-    <b>Demo data.</b> The AIWaves backend (127.0.0.1:8787) isn't reachable, so this is the recorded
-    "Longing" project, read-only. It switches to live automatically when the backend comes up.
-    <button type="button" class="mini-btn" (click)="store.init()">Retry now</button>
+    <mat-icon aria-hidden="true">science</mat-icon>
+    <span class="banner-text">
+      <b>Demo data.</b> The AIWaves backend (127.0.0.1:8787) isn't reachable, so this is the
+      recorded "Longing" project, read-only. It switches to live by itself when the backend comes
+      up.
+    </span>
+    <button mat-button type="button" class="cut-btn" (click)="store.init()">Retry now</button>
+    <button
+      mat-icon-button
+      type="button"
+      class="icon-btn-sm"
+      (click)="demoDismissed.set(true)"
+      aria-label="Dismiss"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
   </div>
 }
 @if (store.loadError(); as err) {
-  <div class="banner banner-error" role="alert">Couldn't load the project: {{ err }}</div>
+  <div class="banner banner-error" role="alert">
+    <mat-icon aria-hidden="true">error</mat-icon>
+    <span class="banner-text">Couldn't load the project: {{ err }}</span>
+    <button mat-button type="button" class="cut-btn" (click)="store.init()">Try again</button>
+  </div>
 }
 @if (store.mode() === 'live' && store.link() === 'reconnecting') {
   <div class="banner banner-warn" role="status">
-    Connection lost — reconnecting and catching up on missed events…
+    <mat-icon aria-hidden="true">wifi_off</mat-icon>
+    <span class="banner-text">Connection lost: reconnecting and catching up on missed events…</span>
   </div>
 }
-<main class="workspace" [class.replay-active]="!store.atHead()">
+<main class="workspace" [class.replay-active]="!store.atHead()" [class.sheet-closed]="!sheetOpen()">
+  <aw-player class="area-player" />
   <aw-arrangement class="area-arr" />
-  <aside class="area-side" aria-label="Activity and history">
-    <aw-activity-feed />
-    <aw-side-panel />
-  </aside>
   <aw-replay-bar class="area-replay" />
-  <div class="area-bottom">
-    <aw-mixer />
-    <aw-device-chain />
-  </div>
+  <aside class="area-sheet" id="aw-sheet" aria-label="Activity and history" [hidden]="!sheetOpen()">
+    @defer (on idle) {
+      <aw-activity-feed />
+      <aw-side-panel />
+    } @placeholder {
+      <div class="panel skeleton" aria-busy="true"></div>
+      <div class="panel skeleton" aria-busy="true"></div>
+    }
+  </aside>
+  <section class="area-bottom" aria-label="Mixer and devices">
+    @defer (on idle) {
+      <aw-mixer />
+      <aw-device-chain />
+    } @placeholder {
+      <div class="panel skeleton" aria-busy="true"></div>
+      <div class="panel skeleton" aria-busy="true"></div>
+    }
+  </section>
 </main>
 <aw-caption-overlay />

@@ -2,9 +2,12 @@ import { Injectable, inject } from '@angular/core';
 import { APP_CONFIG } from './config';
 import { DataSource, LiveHandlers } from './data-source';
 import { AiEvent, History, LiveMessage, Project, ProjectSummary } from './model';
+import { audioPath, isAiEvent, isProject } from './validate';
 
 const PAGE = 500;
 const MAX_BACKOFF_MS = 10_000;
+/** The server pings every 20 s (CONTRACT section 6); this long without a message = a dead link. */
+export const STALE_MS = 50_000;
 
 /** The real backend (CONTRACT sections 5 and 6). */
 @Injectable({ providedIn: 'root' })
@@ -42,9 +45,11 @@ export class ApiService extends DataSource {
       const page = await this.get<AiEvent[]>(
         `/api/projects/${encodeURIComponent(id)}/events?since=${since}&limit=${PAGE}`,
       );
-      out.push(...page);
+      out.push(...page.filter(isAiEvent));
       if (page.length < PAGE) return out;
-      since = page[page.length - 1].seq;
+      const last = page[page.length - 1];
+      if (!isAiEvent(last) || last.seq <= since) return out;
+      since = last.seq;
     }
   }
 
@@ -52,49 +57,69 @@ export class ApiService extends DataSource {
     return this.get(`/api/projects/${encodeURIComponent(id)}/history`);
   }
 
-  audioUrl(project: Project): string {
+  audioUrl(project: Project): string | null {
     // audio.master is relative to the project folder ("audio/master.wav") and the server
     // exposes that folder at /api/projects/{id}/audio/{file}.
-    return `${this.base}/api/projects/${encodeURIComponent(project.id)}/${project.audio.master}`;
+    const path = audioPath(project.audio.master);
+    return path && `${this.base}/api/projects/${encodeURIComponent(project.id)}/${path}`;
   }
 
   connect(id: string, handlers: LiveHandlers): () => void {
     let ws: WebSocket | null = null;
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let watchdog: ReturnType<typeof setTimeout> | undefined;
     let attempt = 0;
     let closed = false;
+
+    // a half-open socket (sleep, network change) never fires onclose: give up on it ourselves
+    const alive = (sock: WebSocket) => {
+      clearTimeout(watchdog);
+      watchdog = setTimeout(() => {
+        sock.onclose = null;
+        sock.close();
+        lost(sock);
+      }, STALE_MS);
+    };
+
+    const lost = (sock: WebSocket) => {
+      clearTimeout(watchdog);
+      if (closed || ws !== sock) return;
+      handlers.status('reconnecting');
+      const delay = Math.min(MAX_BACKOFF_MS, 1000 * 2 ** attempt);
+      attempt++;
+      timer = setTimeout(open, delay);
+    };
 
     const open = () => {
       handlers.status(attempt === 0 ? 'connecting' : 'reconnecting');
       const sock = this.wsFactory(this.wsUrl(id));
       ws = sock;
+      alive(sock);
       sock.onopen = () => {
         attempt = 0;
         handlers.status('open');
+        alive(sock);
       };
       sock.onmessage = (m: MessageEvent) => {
+        alive(sock);
         let msg: LiveMessage;
         try {
           msg = JSON.parse(String(m.data)) as LiveMessage;
         } catch {
           return;
         }
-        if (msg.type === 'hello') handlers.hello(msg.project, msg.last_seq);
-        else if (msg.type === 'event') handlers.event(msg.event);
+        if (msg?.type === 'hello' && isProject(msg.project) && Number.isInteger(msg.last_seq))
+          handlers.hello(msg.project, msg.last_seq);
+        else if (msg?.type === 'event' && isAiEvent(msg.event)) handlers.event(msg.event);
       };
-      sock.onclose = () => {
-        if (closed || ws !== sock) return;
-        handlers.status('reconnecting');
-        const delay = Math.min(MAX_BACKOFF_MS, 1000 * 2 ** attempt);
-        attempt++;
-        timer = setTimeout(open, delay);
-      };
+      sock.onclose = () => lost(sock);
     };
 
     open();
     return () => {
       closed = true;
       clearTimeout(timer);
+      clearTimeout(watchdog);
       ws?.close();
     };
   }

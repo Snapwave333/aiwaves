@@ -1,43 +1,52 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { MatCard } from '@angular/material/card';
+import { MatIcon } from '@angular/material/icon';
 import { Animator } from '../core/animator.service';
 import { formatRounded } from '../core/apply';
 import { Param } from '../core/model';
 import { WorkspaceStore } from '../core/workspace.store';
 import { KnobComponent } from '../ui/knob.component';
 
-const TYPE_BADGES: Record<string, string> = {
-  eq: 'EQ',
-  compressor: 'CMP',
-  delay: 'DLY',
-  reverb: 'REV',
-  filter: 'FLT',
-  sampler: 'SMP',
-  synth: 'SYN',
-  shimmer: 'SHM',
-  freeze: 'FRZ',
-  chorus: 'CHO',
-  utility: 'UTL',
-  limiter: 'LIM',
-  glitch: 'GLT',
-  reverse: 'RVS',
-  tape: 'TPE',
-  pitch: 'PIT',
-  drumrack: 'DRM',
-  saturator: 'SAT',
+/** Badge text and Material Symbol per device type (CONTRACT section 3: icon by type). */
+const TYPES: Record<string, [badge: string, icon: string]> = {
+  eq: ['EQ', 'equalizer'],
+  compressor: ['CMP', 'compress'],
+  delay: ['DLY', 'repeat'],
+  reverb: ['REV', 'blur_on'],
+  filter: ['FLT', 'filter_alt'],
+  sampler: ['SMP', 'piano'],
+  synth: ['SYN', 'graphic_eq'],
+  shimmer: ['SHM', 'stars'],
+  freeze: ['FRZ', 'ac_unit'],
+  chorus: ['CHO', 'waves'],
+  utility: ['UTL', 'tune'],
+  limiter: ['LIM', 'vertical_align_top'],
+  glitch: ['GLT', 'grain'],
+  reverse: ['RVS', 'fast_rewind'],
+  tape: ['TPE', 'album'],
+  pitch: ['PIT', 'height'],
+  drumrack: ['DRM', 'grid_view'],
+  saturator: ['SAT', 'local_fire_department'],
 };
+const GENERIC_ICON = 'memory';
 
 export function typeBadge(type: string): string {
-  return TYPE_BADGES[type.toLowerCase()] ?? (type.slice(0, 3).toUpperCase() || 'DEV');
+  return TYPES[type.toLowerCase()]?.[0] ?? (type.slice(0, 3).toUpperCase() || 'DEV');
+}
+
+export function typeIcon(type: string): string {
+  return TYPES[type.toLowerCase()]?.[1] ?? GENERIC_ICON;
 }
 
 @Component({
   selector: 'aw-device-chain',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [KnobComponent],
+  imports: [KnobComponent, MatCard, MatIcon],
   host: { class: 'panel devices', role: 'region', 'aria-label': 'Device chain' },
   template: `
     @let t = store.selectedTrack();
     <div class="panel-bar">
+      <mat-icon aria-hidden="true">settings_input_component</mat-icon>
       <h2 class="panel-title">Devices</h2>
       @if (t) {
         <span class="panel-sub"
@@ -49,8 +58,11 @@ export function typeBadge(type: string): string {
       @if (t) {
         @for (d of t.devices; track d.id; let last = $last) {
           @let dp = 'tracks.' + t.id + '.devices.' + d.id;
-          <section
+          <mat-card
+            appearance="outlined"
             class="device"
+            role="group"
+            [style.--dev]="t.color"
             [attr.data-path]="dp"
             [class.off]="!d.enabled"
             [class.glow]="animator.glow(dp)"
@@ -58,14 +70,17 @@ export function typeBadge(type: string): string {
             [class.ghost]="store.ghosts().has(dp) || store.ghosts().has('tracks.' + t.id)"
             [attr.aria-label]="d.name + ' (' + d.type + ')' + (d.enabled ? '' : ', off')"
           >
-            <header class="device-head" [style.border-top-color]="t.color">
+            <header class="device-head">
               <span
                 class="light light-on"
                 [class.on]="d.enabled"
                 role="img"
                 [attr.aria-label]="d.enabled ? 'On' : 'Off'"
               ></span>
-              <span class="badge" [title]="d.type">{{ badge(d.type) }}</span>
+              <span class="badge" [title]="d.type"
+                ><mat-icon aria-hidden="true">{{ icon(d.type) }}</mat-icon
+                >{{ badge(d.type) }}</span
+              >
               <span class="device-name" [title]="d.name">{{ d.name }}</span>
             </header>
             <div class="device-params">
@@ -81,16 +96,22 @@ export function typeBadge(type: string): string {
                   [color]="t.color"
                 />
               } @empty {
-                <span class="device-empty">no parameters</span>
+                <span class="device-empty">No parameters</span>
               }
             </div>
-          </section>
+          </mat-card>
           @if (!last) {
-            <span class="chain-arrow" aria-hidden="true">›</span>
+            <mat-icon class="chain-arrow" aria-hidden="true">chevron_right</mat-icon>
           }
         } @empty {
-          <p class="empty">No devices on this track.</p>
+          <p class="empty">
+            <mat-icon aria-hidden="true">power_off</mat-icon>No devices on this track yet.
+          </p>
         }
+      } @else {
+        <p class="empty">
+          <mat-icon aria-hidden="true">touch_app</mat-icon>Select a track to see its devices.
+        </p>
       }
     </div>
   `,
@@ -99,6 +120,7 @@ export class DeviceChainComponent {
   protected readonly store = inject(WorkspaceStore);
   protected readonly animator = inject(Animator);
   protected readonly badge = typeBadge;
+  protected readonly icon = typeIcon;
   private readonly formatters = new Map<string, (v: number) => string>();
 
   protected formatter(p: Param): (v: number) => string {

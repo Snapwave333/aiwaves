@@ -1,0 +1,383 @@
+// Page basics and the small shared pieces every view uses.
+@use './mixins' as m;
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--aw-space);
+  color: var(--aw-text);
+  font: 400 var(--aw-fs-sm) / 1.4 var(--aw-font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background:
+    radial-gradient(
+      70vw 40vh at 50% -12%,
+      color-mix(in srgb, var(--aw-accent) 7%, transparent),
+      transparent 70%
+    ),
+    m.$hex-grid, var(--aw-space);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--aw-accent);
+  outline-offset: 1px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--aw-faint);
+  padding: var(--sp-3);
+  margin: 0;
+  font-size: var(--aw-fs-sm);
+
+  .mat-icon {
+    flex: none;
+    color: var(--aw-faint);
+  }
+}
+
+.mono {
+  font-family: var(--aw-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+// --- glow: the animated mapping's highlight ---------------------------------------------------
+
+@keyframes aw-glow {
+  0% {
+    box-shadow:
+      0 0 0 2px var(--aw-signal),
+      0 0 22px 5px color-mix(in srgb, var(--aw-signal) 70%, transparent);
+  }
+  100% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--aw-signal) 50%, transparent),
+      0 0 8px 1px color-mix(in srgb, var(--aw-signal) 22%, transparent);
+  }
+}
+
+@keyframes aw-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes aw-breathe {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.glow {
+  animation: aw-glow 1.6s ease-out forwards;
+  border-radius: var(--aw-radius-xs);
+  position: relative;
+  z-index: 3;
+}
+
+.ghost {
+  opacity: 0.22;
+  filter: grayscale(0.8);
+}
+
+// --- panels: chamfered gunmetal with an AlienFX strip on top -----------------------------------
+
+.panel {
+  @include m.chamfer();
+  @include m.edge-light();
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+
+  // the panel an agent is touching right now (or that has focus) breathes
+  &:has(.glow)::before,
+  &:focus-within::before {
+    animation: aw-breathe 3.2s ease-in-out infinite;
+  }
+}
+
+// stand-in while a deferred panel's code loads (a few ms after the first paint)
+.panel.skeleton {
+  min-height: 120px;
+  background-image: linear-gradient(
+    100deg,
+    transparent 30%,
+    color-mix(in srgb, var(--aw-accent) 6%, transparent) 50%,
+    transparent 70%
+  );
+  background-size: 300% 100%;
+  animation: aw-skeleton 1.4s linear infinite;
+}
+
+@keyframes aw-skeleton {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
+.panel-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: var(--aw-bar-h);
+  flex: 0 0 var(--aw-bar-h);
+  padding: 0 var(--sp-1) 0 var(--sp-4);
+  background: linear-gradient(100deg, var(--aw-panel-2) 60%, var(--aw-panel) 100%);
+  border-bottom: 1px solid var(--aw-line-soft);
+
+  > .mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    color: var(--aw-accent);
+  }
+}
+
+.panel-title {
+  margin: 0;
+  font: 600 var(--aw-fs-xs) / 1 var(--aw-font-display);
+  letter-spacing: var(--aw-track-wide);
+  text-transform: uppercase;
+  color: var(--aw-text);
+}
+
+.panel-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--aw-faint);
+  font: var(--aw-fs-xs) var(--aw-font-mono);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-tools {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-half);
+}
+
+// compact M3 icon buttons for panel bars and dense rows (28 px, 18 px glyph)
+.icon-btn-sm.mat-mdc-icon-button {
+  --mat-icon-button-state-layer-size: 28px;
+  --mat-icon-button-icon-size: 18px;
+  width: 28px;
+  height: 28px;
+  padding: 5px;
+
+  .mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+}
+
+// M3 sliders: a slim fader-cap thumb; the 48 px touch target stays but takes 28 px of layout
+.mat-mdc-slider {
+  --mat-slider-handle-width: 8px;
+  --mat-slider-handle-height: 18px;
+  --mat-slider-handle-shape: 1px;
+  --mat-slider-handle-elevation: 0 0 10px var(--aw-accent-glow);
+  --mat-slider-active-track-height: 3px;
+  --mat-slider-inactive-track-height: 3px;
+  --mat-slider-active-track-shape: 0;
+  --mat-slider-inactive-track-shape: 0;
+  --mat-slider-inactive-track-color: var(--aw-dim);
+  margin-block: -10px;
+}
+
+// M3 text / outlined / filled buttons with chamfered corners
+.cut-btn.mat-mdc-button-base {
+  --mat-button-text-container-shape: 0;
+  --mat-button-outlined-container-shape: 0;
+  --mat-button-filled-container-shape: 0;
+  --mat-button-tonal-container-shape: 0;
+  --mat-button-protected-container-shape: 0;
+  clip-path: polygon(
+    var(--aw-cut-sm) 0,
+    100% 0,
+    100% calc(100% - var(--aw-cut-sm)),
+    calc(100% - var(--aw-cut-sm)) 100%,
+    0 100%,
+    0 var(--aw-cut-sm)
+  );
+  font-family: var(--aw-font-display);
+  letter-spacing: var(--aw-track-label);
+  text-transform: uppercase;
+}
+
+.swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  flex: none;
+  @include m.hex;
+}
+
+.light {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 14px;
+  border-radius: var(--aw-radius-xs);
+  font: 700 var(--aw-fs-micro) / 1 var(--aw-font-mono);
+  background: var(--aw-raised);
+  color: var(--aw-faint);
+  border: 1px solid var(--aw-line);
+  flex: none;
+
+  &.light-m.on {
+    background: var(--aw-mute);
+    border-color: var(--aw-mute);
+    color: var(--aw-ink-dark);
+    box-shadow: 0 0 6px color-mix(in srgb, var(--aw-mute) 60%, transparent);
+  }
+
+  &.light-s.on {
+    background: var(--aw-solo);
+    border-color: var(--aw-solo);
+    color: var(--aw-ink-dark);
+    box-shadow: 0 0 6px color-mix(in srgb, var(--aw-solo) 60%, transparent);
+  }
+
+  &.light-on {
+    width: 10px;
+    height: 10px;
+    border: 0;
+    @include m.hex;
+
+    &.on {
+      background: var(--aw-accent);
+    }
+  }
+}
+
+// verb tags: static M3 "assist chip" look, one hue per verb family
+.fi-verb {
+  --hue: #8a9bc4;
+  display: inline-block;
+  padding: 0 var(--sp-2);
+  font: 500 var(--aw-fs-2xs) / 16px var(--aw-font-mono);
+  background: color-mix(in srgb, var(--hue) 14%, var(--aw-raised));
+  color: color-mix(in srgb, var(--hue) 72%, white);
+  border-left: 2px solid var(--hue);
+  clip-path: polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 0 100%);
+
+  &[data-verb='param'] {
+    --hue: #ffb547;
+  }
+  &[data-verb='mixer'] {
+    --hue: #4cc9ff;
+  }
+  &[data-verb='song'] {
+    --hue: #c77dff;
+  }
+  &[data-verb='track'],
+  &[data-verb='clip'] {
+    --hue: #3dffa2;
+  }
+  &[data-verb='device'] {
+    --hue: #ff8a65;
+  }
+  &[data-verb='render'] {
+    --hue: #8aa4ff;
+  }
+  &[data-verb='version'] {
+    --hue: var(--aw-version);
+  }
+}
+
+// --- banners (M3 banner: icon, text, action) ---------------------------------------------------
+
+.banner {
+  --tone: var(--aw-warn);
+  @include m.chamfer(
+    var(--aw-cut-sm),
+    color-mix(in srgb, var(--tone) 45%, transparent),
+    color-mix(in srgb, var(--tone) 9%, var(--aw-panel))
+  );
+  flex: 0 0 auto;
+  display: flex;
+  gap: var(--sp-3);
+  align-items: center;
+  flex-wrap: wrap;
+  margin: var(--sp-2) var(--sp-2) 0;
+  padding: var(--sp-1) var(--sp-2) var(--sp-1) var(--sp-3);
+  font-size: var(--aw-fs-sm);
+  color: var(--aw-text);
+
+  > .mat-icon {
+    color: var(--tone);
+    flex: none;
+  }
+
+  .banner-text {
+    flex: 1;
+    min-width: 240px;
+  }
+}
+
+.banner-demo {
+  --tone: var(--aw-violet-text);
+}
+
+.banner-warn {
+  --tone: var(--aw-warn);
+}
+
+.banner-error {
+  --tone: var(--aw-danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow {
+    animation: none;
+    box-shadow: 0 0 0 2px var(--aw-signal);
+  }
+
+  .panel:has(.glow)::before,
+  .panel:focus-within::before {
+    animation: none;
+    opacity: 1;
+  }
+
+  .panel.skeleton {
+    animation: none;
+  }
+}

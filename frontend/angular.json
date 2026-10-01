@@ -30,6 +30,9 @@
               }
             ],
             "styles": [
+              "node_modules/@fontsource-variable/inter/index.css",
+              "node_modules/@fontsource-variable/space-grotesk/index.css",
+              "node_modules/@fontsource-variable/jetbrains-mono/index.css",
               "src/styles.scss"
             ]
           },
@@ -38,7 +41,7 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
+                  "maximumWarning": "600kB",
                   "maximumError": "1MB"
                 },
                 {

@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { APP_CONFIG } from './config';
 import { DataSource, EMPTY_HISTORY, LiveHandlers } from './data-source';
 import { AiEvent, History, Project, ProjectSummary } from './model';
+import { isAiEvent } from './validate';
 
 /** Serves the Longing fixture copied into public/demo/longing (scripts/copy-fixtures.mjs). */
 @Injectable({ providedIn: 'root' })
@@ -50,10 +51,17 @@ export class MockApiService extends DataSource {
   }
 }
 
+/** Events from JSON lines, ascending; blank, unparsable and malformed lines are skipped. */
 export function parseJsonl(text: string): AiEvent[] {
-  return text
-    .split(/\r?\n/)
-    .filter((l) => l.trim())
-    .map((l) => JSON.parse(l) as AiEvent)
-    .sort((a, b) => a.seq - b.seq);
+  const out: AiEvent[] = [];
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    try {
+      const e: unknown = JSON.parse(line);
+      if (isAiEvent(e)) out.push(e);
+    } catch {
+      // one bad line must not lose the rest of the log
+    }
+  }
+  return out.sort((a, b) => a.seq - b.seq);
 }

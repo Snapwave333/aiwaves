@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { Anim, Animator, CAPTION_MS } from '../core/animator.service';
-import { formatJson, shortTarget } from './activity-feed.component';
+import { formatJson, shortTarget } from './format';
 
 const W = 300;
 /** Approximate caption height, for keeping captions from covering each other. */
@@ -73,7 +73,7 @@ export class CaptionOverlayComponent {
       let top: number;
       let below: boolean;
       if (!r || (r.width === 0 && r.height === 0)) {
-        // nothing on screen for this event (a note, or a removed track): float under the transport
+        // nothing on screen for this event (a note, or a removed track): float under the app bar
         left = innerWidth / 2 - W / 2;
         top = 64;
         below = true;

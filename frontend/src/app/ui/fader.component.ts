@@ -1,19 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { Animator } from '../core/animator.service';
+import { Track } from '../core/model';
 import { formatDb } from '../core/time';
-
-export const FADER_MIN_DB = -48;
-export const FADER_MAX_DB = 6;
-
-/** 0..1 travel for a volume in dB (linear in dB, -inf at the bottom). */
-export function faderPos(db: number): number {
-  return Math.min(1, Math.max(0, (db - FADER_MIN_DB) / (FADER_MAX_DB - FADER_MIN_DB)));
-}
+import { FADER_MAX_DB, FADER_MIN_DB, MeterDirective, faderPos } from './live-style.directives';
 
 /** Read-only volume fader with a level meter beside it. */
 @Component({
   selector: 'aw-fader',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MeterDirective],
   host: {
     class: 'fader',
     '[class.glow]': 'glowing()',
@@ -37,11 +32,7 @@ export function faderPos(db: number): number {
         <div class="fader-cap" [style.bottom.%]="pos() * 100"></div>
       </div>
       <div class="meter" aria-hidden="true">
-        <div
-          class="meter-fill"
-          [style.height.%]="meterPos() * 100"
-          [class.hot]="meterPos() > 0.89"
-        ></div>
+        <div class="meter-fill" [awMeter]="track()" scale="db"></div>
       </div>
     </div>
     <span class="fader-value">{{ text() }}</span>
@@ -53,8 +44,8 @@ export class FaderComponent {
   readonly path = input.required<string>();
   readonly label = input.required<string>();
   readonly db = input.required<number>();
-  /** Meter level 0..1 (linear amplitude). */
-  readonly level = input(0);
+  /** The track whose level the meter shows. */
+  readonly track = input.required<Track>();
 
   protected readonly minDb = FADER_MIN_DB;
   protected readonly maxDb = FADER_MAX_DB;
@@ -63,7 +54,4 @@ export class FaderComponent {
   protected readonly pos = computed(() => faderPos(this.shown()));
   protected readonly glowing = computed(() => this.animator.glow(this.path()));
   protected readonly text = computed(() => formatDb(this.shown()));
-  protected readonly meterPos = computed(() =>
-    this.level() > 0 ? faderPos(20 * Math.log10(this.level())) : 0,
-  );
 }

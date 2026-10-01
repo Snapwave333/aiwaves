@@ -16,7 +16,7 @@ export interface Anim {
   reason: string;
 }
 
-const reducedMotion =
+export const reducedMotion =
   typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export const TWEEN_MS = reducedMotion ? 0 : 400;

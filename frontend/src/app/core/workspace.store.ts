@@ -15,6 +15,7 @@ import { APP_CONFIG } from './config';
 import { DataSource, EMPTY_HISTORY, LinkStatus } from './data-source';
 import { MockApiService } from './mock-api.service';
 import { AiEvent, History, Project } from './model';
+import { isProject, sanitizeProject } from './validate';
 
 export const REPLAY_STEP_MS = 1500;
 const BACKEND_RECHECK_MS = 15_000;
@@ -69,7 +70,7 @@ export class WorkspaceStore {
     const src = this.mode() === 'connecting' ? null : this.source;
     if (!b || !src) return null;
     const url = src.audioUrl(b);
-    return src.kind === 'live' ? `${url}?v=${this.renderSeq()}` : url;
+    return url && src.kind === 'live' ? `${url}?v=${this.renderSeq()}` : url;
   });
 
   private source: DataSource | null = null;
@@ -98,7 +99,8 @@ export class WorkspaceStore {
         src.events(this.projectId, 0),
         src.history(this.projectId).catch(() => EMPTY_HISTORY),
       ]);
-      this.base.set(project);
+      if (!isProject(project)) throw new Error('the project is malformed');
+      this.base.set(sanitizeProject(project));
       this.events.set(mergeEvents([], events));
       this.history.set(history);
       this.loadError.set(null);
@@ -220,7 +222,7 @@ export class WorkspaceStore {
       const missed = await this.source.events(this.projectId, known);
       this.events.update((ev) => mergeEvents(ev, missed));
     }
-    if (project.version >= (this.base()?.version ?? 0)) this.base.set(project);
+    if (project.version >= (this.base()?.version ?? 0)) this.base.set(sanitizeProject(project));
   }
 
   private async onEvent(event: AiEvent): Promise<void> {
@@ -240,7 +242,8 @@ export class WorkspaceStore {
     if (following) this.present(event, 1);
     if (needsRefetch && this.source) {
       const fresh = await this.source.project(this.projectId);
-      if (fresh.version >= (this.base()?.version ?? 0)) this.base.set(fresh);
+      if (isProject(fresh) && fresh.version >= (this.base()?.version ?? 0))
+        this.base.set(sanitizeProject(fresh));
     }
   }
 }

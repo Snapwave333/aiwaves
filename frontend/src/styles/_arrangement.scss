@@ -1,0 +1,383 @@
+// The arrangement: ruler, chord lane, master waveform, track lanes with clips, playhead.
+
+.arrangement {
+  --head-w: 188px;
+  --grid-bar: color-mix(in srgb, var(--aw-text) 8%, transparent);
+  --grid-beat: color-mix(in srgb, var(--aw-text) 3%, transparent);
+  --grid-sub: color-mix(in srgb, var(--aw-text) 3%, transparent);
+}
+
+.arr-scroll {
+  flex: 1;
+  overflow: auto;
+  // the vertical scrollbar appearing must not change the width the song is fitted to
+  scrollbar-gutter: stable;
+  min-height: 0;
+  position: relative;
+}
+
+.stage-empty {
+  height: 100%;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  color: var(--aw-dim);
+  font: 500 var(--aw-fs-md) / 1.4 var(--aw-font-display);
+  letter-spacing: 0.04em;
+  text-align: center;
+  padding: var(--sp-4);
+
+  .mat-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 32px;
+    color: var(--aw-accent);
+  }
+
+  .spin {
+    animation: aw-spin 1s linear infinite;
+  }
+
+  .stage-empty-sub {
+    color: var(--aw-faint);
+    font: var(--aw-fs-xs) var(--aw-font-mono);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage-empty .spin {
+    animation: none;
+  }
+}
+
+.arr-grid {
+  position: relative;
+  min-height: 100%;
+}
+
+.arr-row {
+  display: flex;
+  flex: none;
+  height: 30px;
+  border-bottom: 1px solid var(--aw-line-soft);
+}
+
+.arr-head {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  flex: 0 0 var(--head-w);
+  width: var(--head-w);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 0 var(--sp-2);
+  background: var(--aw-panel-2);
+  border-right: 1px solid var(--aw-line);
+  overflow: hidden;
+
+  &.corner {
+    color: var(--aw-faint);
+    font: 600 var(--aw-fs-micro) / 1 var(--aw-font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+}
+
+.head-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.head-name {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.head-sub {
+  font-size: var(--aw-fs-2xs);
+  color: var(--aw-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.head-meter {
+  width: 4px;
+  height: 20px;
+  border-radius: 1px;
+  background: var(--aw-well);
+  display: flex;
+  align-items: flex-end;
+  flex: none;
+  overflow: hidden;
+
+  span {
+    width: 100%;
+    background: var(--aw-meter-lo);
+    transition: height 60ms linear;
+  }
+}
+
+.arr-lane {
+  position: relative;
+  flex: none;
+  background-image:
+    linear-gradient(to right, var(--grid-bar) 1px, transparent 1px),
+    linear-gradient(to right, var(--grid-beat) 1px, transparent 1px);
+  background-size:
+    calc(var(--ppb) * 4) 100%,
+    var(--ppb) 100%;
+}
+
+.arr-grid.beats .arr-lane {
+  background-image:
+    linear-gradient(to right, var(--grid-bar) 1px, transparent 1px),
+    linear-gradient(to right, var(--grid-beat) 1px, transparent 1px),
+    linear-gradient(to right, var(--grid-sub) 1px, transparent 1px);
+  background-size:
+    calc(var(--ppb) * 4) 100%,
+    var(--ppb) 100%,
+    calc(var(--ppb) / var(--bpb)) 100%;
+}
+
+.ruler-row,
+.chord-row,
+.master-row {
+  position: sticky;
+  z-index: 5;
+  background: var(--aw-panel);
+
+  .arr-head {
+    z-index: 6;
+  }
+}
+
+.ruler-row {
+  top: 0;
+
+  .corner {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0;
+    padding: var(--sp-half) var(--sp-2);
+  }
+}
+
+.ruler {
+  cursor: pointer;
+}
+
+.section-band {
+  position: absolute;
+  top: 0;
+  height: 12px;
+  background: color-mix(in srgb, var(--sec) 26%, transparent);
+  border-left: 1px solid var(--sec);
+
+  &.current {
+    background: color-mix(in srgb, var(--sec) 48%, transparent);
+  }
+}
+
+.locator {
+  position: absolute;
+  top: 0;
+  height: 12px;
+  pointer-events: none;
+
+  .locator-flag {
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 0 var(--sp-1);
+    font: 600 var(--aw-fs-micro) / 12px var(--aw-font-display);
+    letter-spacing: 0.02em;
+    color: var(--aw-ink-dark);
+    background: var(--sec);
+    border-radius: 0 var(--aw-radius-sm) var(--aw-radius-sm) 0;
+    white-space: nowrap;
+  }
+
+  &.current .locator-flag {
+    outline: 1px solid var(--aw-playhead);
+    box-shadow: 0 0 10px var(--sec);
+  }
+}
+
+.bar-tick {
+  position: absolute;
+  bottom: 0;
+  height: 5px;
+  border-left: 1px solid var(--aw-line);
+}
+
+.bar-num {
+  position: absolute;
+  bottom: 0;
+  height: 13px;
+  padding-left: var(--sp-half);
+  font: var(--aw-fs-micro) / 13px var(--aw-font-mono);
+  color: var(--aw-dim);
+  border-left: 1px solid var(--aw-faint);
+}
+
+.chord {
+  position: absolute;
+  top: 2px;
+  padding: 0 var(--sp-1);
+  font: var(--aw-fs-2xs) / 16px var(--aw-font-mono);
+  color: color-mix(in srgb, var(--aw-violet) 80%, white);
+  border-left: 1px solid color-mix(in srgb, var(--aw-violet) 45%, transparent);
+
+  &.current {
+    color: var(--aw-text);
+    background: color-mix(in srgb, var(--aw-violet) 35%, var(--aw-panel));
+    border-radius: 0 var(--aw-radius-xs) var(--aw-radius-xs) 0;
+  }
+}
+
+.master-row {
+  height: 40px;
+}
+
+.wave-lane {
+  cursor: pointer;
+  border-radius: 0;
+}
+
+.wave {
+  display: block;
+  height: 100%;
+
+  path {
+    fill: color-mix(in srgb, var(--aw-accent) 50%, var(--aw-dim));
+    opacity: 0.85;
+  }
+}
+
+.track-row {
+  position: relative;
+
+  &.selected .arr-head {
+    background: var(--aw-raised);
+    box-shadow: inset 3px 0 0 var(--aw-accent);
+  }
+
+  &.selected .arr-lane {
+    background-color: color-mix(in srgb, var(--aw-accent) 4%, transparent);
+  }
+
+  &.compact .head-sub {
+    display: none;
+  }
+}
+
+.track-head {
+  cursor: pointer;
+
+  &:hover {
+    background: var(--aw-raised);
+  }
+
+  &.touched:not(.glow) {
+    box-shadow: inset -3px 0 0 var(--aw-signal);
+  }
+
+  .swatch {
+    width: 4px;
+    height: 60%;
+    border-radius: var(--aw-radius-full);
+  }
+}
+
+.lane-resize {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 5px;
+  // above the sticky track header, below the sticky ruler / chord / master rows
+  z-index: 4;
+  cursor: ns-resize;
+  touch-action: none;
+
+  &:hover,
+  &:focus-visible {
+    background: color-mix(in srgb, var(--aw-accent) 60%, transparent);
+    outline: none;
+  }
+}
+
+.clip {
+  --clip: #888;
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  min-width: 2px;
+  display: block;
+  border-radius: var(--aw-radius-xs);
+  background: color-mix(in srgb, var(--clip) 34%, var(--aw-panel));
+  border: 1px solid color-mix(in srgb, var(--clip) 65%, black);
+  overflow: hidden;
+  cursor: default;
+  box-sizing: border-box;
+
+  &.playing {
+    background: color-mix(in srgb, var(--clip) 50%, var(--aw-panel));
+    border-color: color-mix(in srgb, var(--clip) 80%, white);
+  }
+
+  .clip-name {
+    display: block;
+    height: 12px;
+    padding: 0 var(--sp-1);
+    font: 600 var(--aw-fs-micro) / 12px var(--aw-font-body);
+    color: var(--aw-ink-dark);
+    background: color-mix(in srgb, var(--clip) 90%, white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &.narrow .clip-name {
+    color: transparent;
+    padding: 0;
+  }
+}
+
+.lane-canvas {
+  position: absolute;
+  display: block;
+  // over the clip boxes (a glowing clip is z-index 3 too, earlier in the DOM), under the playhead
+  z-index: 3;
+  pointer-events: none;
+}
+
+.playhead,
+.lane-playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  // moved by transform every frame (PlayheadDirective): no layout
+  will-change: transform;
+  background: var(--aw-playhead);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--aw-accent) 80%, transparent);
+  z-index: 3;
+  pointer-events: none;
+}
+
+// the sticky ruler and master rows cover the grid's playhead, so they draw their own
+.lane-playhead {
+  z-index: 1;
+}

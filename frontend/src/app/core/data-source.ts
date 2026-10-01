@@ -16,7 +16,8 @@ export abstract class DataSource {
   /** All events with seq > since, ascending. */
   abstract events(id: string, since: number): Promise<AiEvent[]>;
   abstract history(id: string): Promise<History>;
-  abstract audioUrl(project: Project): string;
+  /** Null when the project's audio path is unusable. */
+  abstract audioUrl(project: Project): string | null;
   /** Opens the live feed; returns a function that closes it for good. */
   abstract connect(id: string, handlers: LiveHandlers): () => void;
 }

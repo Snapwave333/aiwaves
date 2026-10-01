@@ -1,0 +1,88 @@
+// The device chain of the selected track: one outlined M3 card per device.
+@use './mixins' as m;
+
+.chain {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-2);
+  padding: var(--sp-2);
+  overflow: auto;
+  min-height: 0;
+}
+
+.chain-arrow {
+  align-self: center;
+  color: var(--aw-faint);
+}
+
+.device.mat-mdc-card {
+  @include m.chamfer(var(--aw-cut-sm), var(--aw-line), var(--aw-panel-2));
+  @include m.edge-light(var(--dev, var(--aw-accent)));
+  flex: none;
+  min-width: 128px;
+  max-width: 300px;
+  overflow: hidden;
+  transition: opacity var(--aw-med) var(--aw-ease);
+
+  &.off {
+    opacity: 0.5;
+  }
+
+  &.touched:not(.glow) {
+    border-color: var(--aw-signal);
+  }
+
+  &.touched::before,
+  &.glow::before {
+    opacity: 1;
+  }
+}
+
+.device-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-2) var(--sp-1) var(--sp-3);
+  background: linear-gradient(100deg, var(--aw-raised) 50%, var(--aw-panel-2));
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-half);
+  font: 700 var(--aw-fs-micro) / 1 var(--aw-font-mono);
+  padding: var(--sp-half) var(--sp-1);
+  border-radius: var(--aw-radius-xs);
+  background: var(--aw-well);
+  color: var(--aw-dim);
+
+  .mat-icon {
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+  }
+}
+
+.device-name {
+  font: 600 var(--aw-fs-xs) / 1.2 var(--aw-font-display);
+  letter-spacing: var(--aw-track-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.device-params {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: var(--sp-half);
+  padding: var(--sp-2) var(--sp-1);
+}
+
+.device-empty {
+  color: var(--aw-faint);
+  font-size: var(--aw-fs-2xs);
+  padding: var(--sp-1);
+}

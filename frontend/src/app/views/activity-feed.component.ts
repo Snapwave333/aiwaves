@@ -6,34 +6,19 @@ import {
   effect,
   inject,
 } from '@angular/core';
+import { MatIcon } from '@angular/material/icon';
 import { Animator } from '../core/animator.service';
-import { Json } from '../core/model';
 import { WorkspaceStore } from '../core/workspace.store';
-
-export function formatJson(v: Json): string {
-  if (v === null || v === undefined) return '—';
-  if (typeof v === 'number') return String(Number(v.toFixed(3)));
-  if (typeof v === 'boolean') return v ? 'on' : 'off';
-  if (typeof v === 'string') return v;
-  const s = JSON.stringify(v);
-  return s.length > 48 ? s.slice(0, 47) + '…' : s;
-}
-
-/** "tracks.zither.devices.echo.params.feedback" -> "zither › echo › feedback". */
-export function shortTarget(target: string | null): string {
-  if (!target) return '';
-  return target
-    .replace(/^tracks\./, '')
-    .replace(/\.(devices|params|clips|mixer)\./g, ' › ')
-    .replace(/\.mixer$/, ' › mixer');
-}
+import { formatJson, shortTarget } from './format';
 
 @Component({
   selector: 'aw-activity-feed',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MatIcon],
   host: { class: 'panel feed', role: 'region', 'aria-label': 'Activity' },
   template: `
     <div class="panel-bar">
+      <mat-icon aria-hidden="true">bolt</mat-icon>
       <h2 class="panel-title">Activity</h2>
       <span class="panel-sub">{{ store.events().length }} events</span>
     </div>
@@ -71,7 +56,10 @@ export function shortTarget(target: string | null): string {
           </button>
         </li>
       } @empty {
-        <li class="empty">No events yet.</li>
+        <li class="empty">
+          <mat-icon aria-hidden="true">hourglass_empty</mat-icon>
+          No events yet. Changes an agent makes will appear here as they happen.
+        </li>
       }
     </ol>
   `,

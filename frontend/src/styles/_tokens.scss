@@ -1,0 +1,170 @@
+// Design tokens: the Material 3 theme (Angular Material's Sass API) plus the workspace's own
+// custom properties. Components and partials use only these, never raw colours or sizes.
+@use '@angular/material' as mat;
+@use './theme-colors' as palette;
+
+$font-display: 'Space Grotesk Variable', 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+$font-body:
+  'Inter Variable',
+  'Inter',
+  'Segoe UI',
+  system-ui,
+  -apple-system,
+  sans-serif;
+$font-mono:
+  'JetBrains Mono Variable', 'JetBrains Mono', 'Cascadia Mono', Consolas, ui-monospace, monospace;
+
+// Dynamic colour: the cover art's dominant colour replaces these at runtime (see
+// core/dynamic-color.ts). Registering them as colours lets the change glide instead of snap.
+@property --mat-sys-primary {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #00e5ff;
+}
+@property --mat-sys-on-primary {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #00363d;
+}
+@property --mat-sys-primary-container {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #004f58;
+}
+@property --mat-sys-on-primary-container {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #9cf0ff;
+}
+
+html {
+  color-scheme: dark;
+
+  @include mat.theme(
+    (
+      color: (
+        theme-type: dark,
+        primary: palette.$primary-palette,
+        tertiary: palette.$tertiary-palette,
+      ),
+      typography: (
+        plain-family: $font-body,
+        brand-family: $font-display,
+        bold-weight: 650,
+        medium-weight: 550,
+        regular-weight: 400,
+      ),
+      density: -2,
+    )
+  );
+
+  // near-black and gunmetal surfaces; the exact default cyan as primary
+  @include mat.theme-overrides(
+    (
+      primary: #00e5ff,
+      on-primary: #00363d,
+      primary-container: #004f58,
+      on-primary-container: #9cf0ff,
+      surface: #07090d,
+      surface-dim: #07090d,
+      surface-container-lowest: #050609,
+      surface-container-low: #0d1117,
+      surface-container: #151a22,
+      surface-container-high: #1c2230,
+      surface-container-highest: #242b3a,
+      surface-bright: #2e3646,
+    )
+  );
+
+  transition:
+    --mat-sys-primary 900ms ease,
+    --mat-sys-on-primary 900ms ease,
+    --mat-sys-primary-container 900ms ease,
+    --mat-sys-on-primary-container 900ms ease;
+
+  // --- spacing: a 4 px grid, 8 px rhythm --------------------------------------------------------
+  --sp-half: 2px;
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+
+  // --- type ---------------------------------------------------------------------------------------
+  --aw-font-display: #{$font-display};
+  --aw-font-body: #{$font-body};
+  --aw-font-mono: #{$font-mono};
+  // the DAW needs sizes below M3's smallest label (11 px) for rulers, knob labels and meters
+  --aw-fs-micro: 9px;
+  --aw-fs-2xs: 10px;
+  --aw-fs-xs: 11px;
+  --aw-fs-sm: 12px;
+  --aw-fs-md: 13px;
+  --aw-fs-lg: 16px;
+  --aw-fs-xl: 22px;
+  --aw-fs-2xl: 28px;
+  // UPPERCASE labels and headings
+  --aw-track-wide: 0.16em;
+  --aw-track-label: 0.12em;
+
+  // --- surfaces and lines (near-black, gunmetal) -------------------------------------------------
+  --aw-space: #07090d;
+  --aw-panel: #0d1117;
+  --aw-panel-2: #151a22;
+  --aw-raised: #1c2230;
+  --aw-raised-2: #242b3a;
+  --aw-well: #050609;
+  --aw-line: #2a3242;
+  --aw-line-soft: #1b212c;
+  --aw-titlebar: #07090d;
+
+  // --- text (each >= 4.5:1 on panel, panel-2 and raised) ------------------------------------------
+  --aw-text: #e2e6ee;
+  --aw-dim: #aab3c5;
+  --aw-faint: #8a93a6;
+
+  // --- AlienFX lighting --------------------------------------------------------------------------
+  --aw-accent: var(--mat-sys-primary);
+  --aw-accent-soft: color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
+  --aw-accent-glow: color-mix(in srgb, var(--mat-sys-primary) 55%, transparent);
+  --aw-violet: #b14dff;
+  --aw-violet-text: #cf91ff;
+  --aw-magenta: #ff2bd6;
+  // what an agent just touched: one constant colour, whatever the cover art does to the accent
+  --aw-signal: var(--aw-magenta);
+  --aw-signal-soft: color-mix(in srgb, var(--aw-signal) 16%, transparent);
+  --aw-live: #3dffa2;
+  --aw-warn: #ffc24d;
+  --aw-danger: #ff5c7a;
+  --aw-mute: #ffd35c;
+  --aw-solo: #4cc9ff;
+  --aw-version: #ff7ab6;
+  --aw-meter-lo: #3dffa2;
+  --aw-meter-mid: #e9ff6b;
+  --aw-meter-hi: #ff5c7a;
+  --aw-playhead: #f2f6ff;
+  --aw-ink-dark: #05070b;
+
+  // --- geometry, motion, sizes --------------------------------------------------------------------
+  --aw-cut: 10px;
+  --aw-cut-sm: 6px;
+  --aw-radius-xs: 2px;
+  --aw-radius-sm: 4px;
+  --aw-radius-full: 9999px;
+  --aw-ease: cubic-bezier(0.2, 0, 0, 1);
+  --aw-fast: 120ms;
+  --aw-med: 240ms;
+  --aw-bar-h: 32px;
+  --aw-appbar-h: 52px;
+  --aw-sheet-w: 340px;
+
+  // M3 components: square-ish, chamfered by clip-path where it matters (see _mixins.scss)
+  --mat-sys-corner-extra-small: 2px;
+  --mat-sys-corner-small: 4px;
+  --mat-sys-corner-medium: 4px;
+  --mat-sys-corner-large: 6px;
+}

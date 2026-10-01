@@ -1,0 +1,74 @@
+// The replay bar: replay the build, step, scrub over event seq, go to now.
+@use './mixins' as m;
+
+.replay {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-2);
+  @include m.chamfer(var(--aw-cut-sm));
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.replay-btn.mat-mdc-button-base {
+  --mat-button-protected-container-height: 32px;
+  --mat-button-filled-container-height: 32px;
+  --mat-button-outlined-container-height: 32px;
+  --mat-button-tonal-container-height: 32px;
+}
+
+.scrub {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  padding-top: var(--sp-3);
+
+  .mat-mdc-slider {
+    display: block;
+    width: auto;
+    margin: 0 var(--sp-2);
+  }
+}
+
+.scrub-marks {
+  position: absolute;
+  top: 0;
+  left: var(--sp-2);
+  right: var(--sp-2);
+  height: var(--sp-3);
+}
+
+.scrub-mark {
+  position: absolute;
+  transform: translateX(-50%);
+  font: var(--aw-fs-micro) / 12px var(--aw-font-mono);
+  color: var(--aw-version);
+  white-space: nowrap;
+
+  &.tick {
+    width: 2px;
+    height: 6px;
+    margin-top: 6px;
+    background: var(--aw-version);
+  }
+}
+
+.replay-readout {
+  font: var(--aw-fs-xs) var(--aw-font-mono);
+  color: var(--aw-dim);
+  white-space: nowrap;
+
+  b {
+    color: var(--aw-accent);
+  }
+}
+
+.live-btn.on {
+  --mat-button-outlined-label-text-color: var(--aw-live);
+  --mat-button-outlined-disabled-label-text-color: var(--aw-live);
+
+  .mat-icon {
+    color: var(--aw-live);
+  }
+}

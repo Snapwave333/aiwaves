@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Animator, TWEEN_MS } from '../core/animator.service';
 import { WorkspaceStore } from '../core/workspace.store';
 import { longing } from '../testing/fixtures';
-import { formatJson, shortTarget } from './activity-feed.component';
+import { formatJson, shortTarget } from './format';
 import { ActivityFeedComponent } from './activity-feed.component';
 import { ArrangementComponent } from './arrangement.component';
 import { DeviceChainComponent } from './device-chain.component';
@@ -81,7 +81,9 @@ describe('workspace views', () => {
     // every track the build log adds after seq 20 (strings, zither, chops, handpan, doubles, vfx, ...)
     const { project, events } = longing();
     const later = new Set(
-      events.filter((e) => e.seq > 20 && e.verb === 'track.add').map((e) => String(e.target).split('.')[1]),
+      events
+        .filter((e) => e.seq > 20 && e.verb === 'track.add')
+        .map((e) => String(e.target).split('.')[1]),
     );
     expect(el.querySelectorAll('.track-row.ghost').length).toBe(
       project.tracks.filter((tr) => later.has(tr.id)).length,
