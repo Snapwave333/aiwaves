@@ -24,7 +24,7 @@ function fakeBackend(project: Project, events: AiEvent[]) {
     project: async () => structuredClone(fake.current),
     events: async (_id: string, since: number) => events.filter((e) => e.seq > since),
     history: async (): Promise<History> => ({ changelog: [], commits: [], branch: null }),
-    audioUrl: () => '/api/projects/longing/audio/master.wav',
+    audioUrl: (p: Project) => `/api/projects/longing/${p.audio.master}`,
     connect: (_id: string, h: LiveHandlers) => {
       fake.handlers = h;
       h.status('open');
@@ -147,6 +147,50 @@ describe('collapsed panels (the default): one row, open for a moment when a chan
     expect(panelOf({ verb: 'device.add', target: 'tracks.a.devices.eq' })).toBe('devices');
     expect(panelOf({ verb: 'note', target: null })).toBeNull();
     expect(panelOf({ verb: 'clip.add', target: 'tracks.a.clips.c1' })).toBeNull();
+  });
+
+  it('hear an older version: the timeline loads its own render; back at now the current one returns', async () => {
+    TestBed.inject(PanelLayout).more('timeline');
+    await push({ ...ev(LAST + 1, 'version.tag', null, null, '9.0'), reason: 'nine' });
+    await push({ ...ev(LAST + 2, 'render.done', null, null, { audio: 'audio/master_v9.0.wav', duration_s: 100 }), version: '9.0' });
+    await push({ ...ev(LAST + 3, 'version.tag', null, null, '9.1'), reason: 'nine one' });
+    await push({ ...ev(LAST + 4, 'render.done', null, null, { audio: 'audio/master_v9.1.wav', duration_s: 120 }), version: '9.1' });
+    const t = TestBed.createComponent(VersionTimelineComponent);
+    await t.whenStable();
+    const te = t.nativeElement as HTMLElement;
+    expect(store.audioUrl()).toContain('master_v9.1.wav');
+    expect(te.querySelector('.hear-btn')).toBeNull(); // at now the player already has it
+
+    store.seekSeq(LAST + 2, false);
+    await t.whenStable();
+    const hear = te.querySelector('.hear-btn') as HTMLButtonElement;
+    expect(hear.textContent).toContain('Hear v9.0');
+    hear.click();
+    await t.whenStable();
+    expect(store.audioUrl()).toContain('master_v9.0.wav');
+    expect(te.querySelector('.hear-btn.on')!.textContent).toContain('Hearing v9.0');
+
+    store.goLive();
+    await t.whenStable();
+    expect(store.audition()).toBeNull();
+    expect(store.audioUrl()).toContain('master_v9.1.wav');
+  });
+
+  it('a version label jumps to the end of that version; Shift-steps go version by version', async () => {
+    TestBed.inject(PanelLayout).more('timeline');
+    const t = TestBed.createComponent(VersionTimelineComponent);
+    await t.whenStable();
+    const spans = store.versions();
+    const labels = [...(t.nativeElement as HTMLElement).querySelectorAll('.version-label')] as HTMLButtonElement[];
+    expect(labels.length).toBeGreaterThan(0);
+    const first = labels[0];
+    const span = spans.find((v) => `v${v.version}` === first.textContent!.trim())!;
+    first.click();
+    expect(store.seq()).toBe(span.end);
+    store.stepVersion(1);
+    expect(store.seq()).toBe(spans[spans.indexOf(span) + 1].end);
+    store.stepVersion(-1);
+    expect(store.seq()).toBe(span.end);
   });
 
   it('collapsed history says the latest version; collapsed timeline says where the views are', async () => {

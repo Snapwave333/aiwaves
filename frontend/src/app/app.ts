@@ -67,7 +67,9 @@ export class App {
     effect(() => {
       const url = this.store.audioUrl();
       const b = this.store.base();
-      if (url && b) this.audio.load(url, b.audio.peaks, b.audio.duration_s);
+      const a = this.store.audition(); // an older render: its own waveform and length
+      if (url && b)
+        this.audio.load(url, a?.peaks ?? b.audio.peaks, a?.duration_s ?? b.audio.duration_s);
     });
     // cover art (CONTRACT section 10): once per project and source, then one per playthrough
     const coverSource = computed(() => {
@@ -84,7 +86,8 @@ export class App {
     });
   }
 
-  /** Space: play / pause. M: mute. Left / right: step the replay one event. */
+  /** Space: play / pause. M: mute. Left / right: step one event (with Shift: one version).
+   * Home / End: the start of the history / now. */
   protected onKey(e: KeyboardEvent): void {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     const el = e.target as HTMLElement | null;
@@ -103,7 +106,15 @@ export class App {
     } else if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && tag !== 'INPUT') {
       e.preventDefault();
       this.store.stopReplay();
-      this.store.step(e.key === 'ArrowLeft' ? -1 : 1);
+      if (e.shiftKey) this.store.stepVersion(e.key === 'ArrowLeft' ? -1 : 1);
+      else this.store.step(e.key === 'ArrowLeft' ? -1 : 1);
+    } else if ((e.key === 'Home' || e.key === 'End') && tag !== 'INPUT') {
+      e.preventDefault();
+      if (e.key === 'End') this.store.goLive();
+      else {
+        this.store.stopReplay();
+        this.store.seekSeq(0, false);
+      }
     }
   }
 }

@@ -16,6 +16,7 @@ import { APP_CONFIG } from './config';
 import { DataSource, EMPTY_HISTORY, LinkStatus } from './data-source';
 import { MockApiService } from './mock-api.service';
 import { AiEvent, History, Project } from './model';
+import { Render, renderAt, versionSpans, versionStep } from './timeline';
 import { isProject, sanitizeProject } from './validate';
 
 export const REPLAY_STEP_MS = 1500;
@@ -64,6 +65,13 @@ export class WorkspaceStore {
   /** Tracks, devices and clips that don't exist yet at `seq` (drawn as ghosts). */
   readonly ghosts = computed(() => pendingAdds(this.events(), this.seq()));
   readonly versionLabel = computed(() => versionAt(this.events(), this.seq()));
+  /** Each version's stretch of the log (the version timeline's labels). */
+  readonly versions = computed(() => versionSpans(this.events(), this.lastSeq()));
+  /** An older render being listened to (A/B against the current one); null: the current render. */
+  readonly audition = signal<Render | null>(null);
+  /** The render of the version on screen, when its file still holds it (older renders were
+   * written over by later ones and can't be heard any more). */
+  readonly renderOnScreen = computed(() => renderAt(this.events(), this.seq()));
   readonly selectedTrack = computed(() => {
     const p = this.project();
     return p?.tracks.find((t) => t.id === this.selectedTrackId()) ?? p?.tracks[0] ?? null;
@@ -73,8 +81,9 @@ export class WorkspaceStore {
     const b = this.base();
     const src = this.mode() === 'connecting' ? null : this.source;
     if (!b || !src) return null;
-    const url = src.audioUrl(b);
-    return url && src.kind === 'live' ? `${url}?v=${this.renderSeq()}` : url;
+    const a = this.audition();
+    const url = src.audioUrl(a ? { ...b, audio: { ...b.audio, master: a.audio } } : b);
+    return url && src.kind === 'live' ? `${url}?v=${a?.seq ?? this.renderSeq()}` : url;
   });
 
   private source: DataSource | null = null;
@@ -133,6 +142,7 @@ export class WorkspaceStore {
     const from = this.seq();
     if (to === from) return;
     this.viewSeq.set(to >= last ? null : to);
+    if (to >= last) this.audition.set(null);                 // back at now: the current render
     if (!animate || Math.abs(to - from) !== 1) return;
     const crossed = this.events().find((e) => e.seq === (to > from ? to : from));
     if (crossed) this.present(crossed, to > from ? 1 : -1);
@@ -142,9 +152,23 @@ export class WorkspaceStore {
     this.seekSeq(this.seq() + delta);
   }
 
+  /** To the end of the next (1) or previous (-1) version. */
+  stepVersion(delta: 1 | -1): void {
+    const to = versionStep(this.versions(), this.seq(), delta);
+    if (to === null) return;
+    this.stopReplay();
+    this.seekSeq(to, false);
+  }
+
+  /** Listen to the render of the version on screen (or, with null, back to the current one). */
+  hear(render: Render | null): void {
+    this.audition.set(render && render.audio !== this.base()?.audio.master ? render : null);
+  }
+
   goLive(): void {
     this.stopReplay();
     this.viewSeq.set(null);
+    this.audition.set(null);
   }
 
   startReplay(): void {

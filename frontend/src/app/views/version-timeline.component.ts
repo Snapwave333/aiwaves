@@ -13,12 +13,16 @@ import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatSlider, MatSliderThumb } from '@angular/material/slider';
 import { MatTooltip } from '@angular/material/tooltip';
+import { AiEvent } from '../core/model';
 import { PanelLayout } from '../core/panel-layout';
+import { VersionSpan, familyOf, layoutLabels } from '../core/timeline';
+import { describeChange, shortTarget } from './format';
 import { WorkspaceStore } from '../core/workspace.store';
 import { PanelStepsComponent } from '../ui/panel-steps.component';
 
-/** Room (px) a version label needs before the next one. */
-const MARK_PX = 34;
+/** Label row height (px): two rows of version labels above the scrubber. */
+const ROW_PX = 15;
+const FAMILIES = ['build', 'move', 'note', 'render', 'version'] as const;
 
 /** The version timeline: every event the song was built from, by version; replay, step, scrub, now. */
 @Component({
@@ -80,17 +84,28 @@ const MARK_PX = 34;
       <mat-icon>chevron_right</mat-icon>
     </button>
     <div class="scrub" #scrub>
-      <div class="scrub-marks" aria-hidden="true">
-        @for (m of marks(); track m.seq) {
-          <span
-            class="scrub-mark"
-            [class.tick]="!m.room"
-            [style.left.%]="m.pos"
-            [title]="'v' + m.label + ' (event ' + m.seq + ')'"
-            >{{ m.room ? 'v' + m.label : '' }}</span
-          >
+      <div class="version-labels" [style.height.px]="labelRows() * ROW_PX">
+        @for (l of labels(); track l.span.start) {
+          @if (l.row !== null) {
+            <button
+              type="button"
+              class="version-label"
+              [class.current]="l.span.version === store.versionLabel()"
+              [style.left.px]="l.labelX"
+              [style.top.px]="l.row * ROW_PX"
+              (click)="jump(l.span)"
+              [title]="labelTitle(l.span)"
+            >
+              v{{ l.span.version }}
+            </button>
+          }
         }
       </div>
+      <svg class="event-marks" viewBox="0 0 1000 10" preserveAspectRatio="none" aria-hidden="true">
+        @for (f of marks(); track f.family) {
+          <path [attr.d]="f.d" [attr.class]="'mark mark-' + f.family" />
+        }
+      </svg>
       <mat-slider min="0" [max]="store.lastSeq()" step="1" [disabled]="!store.lastSeq()">
         <input
           matSliderThumb
@@ -105,8 +120,24 @@ const MARK_PX = 34;
       SEQ <b>{{ store.seq() }}</b> / {{ store.lastSeq() }}
       @if (current(); as e) {
         <span class="fi-verb" [attr.data-verb]="e.verb.split('.')[0]">{{ e.verb }}</span>
+        <span class="readout-change" [title]="e.reason">{{ line(e) }}</span>
       }
     </span>
+    @if (store.audition(); as a) {
+      <button mat-flat-button type="button" class="hear-btn on cut-btn" (click)="store.hear(null)">
+        <mat-icon>headphones</mat-icon>Hearing v{{ a.version }} · back to the current mix
+      </button>
+    } @else if (canHear(); as r) {
+      <button
+        mat-stroked-button
+        type="button"
+        class="hear-btn cut-btn"
+        (click)="store.hear(r)"
+        matTooltip="Load this version's mix into the player (A/B)"
+      >
+        <mat-icon>headphones</mat-icon>Hear v{{ r.version }}
+      </button>
+    }
     <button
       mat-stroked-button
       type="button"
@@ -133,27 +164,36 @@ export class VersionTimelineComponent {
     const ver = v ? `v${v} · ` : '';
     return this.store.atHead()
       ? `${ver}seq ${this.store.seq()}/${this.store.lastSeq()} · NOW`
-      : `viewing ${ver}seq ${this.store.seq()} of ${this.store.lastSeq()}`;
+      : `viewing ${ver}seq ${this.store.seq()} of ${this.store.lastSeq()}` +
+          (this.store.audition() ? ` · hearing v${this.store.audition()!.version}` : '');
   });
   private readonly scrub = viewChild<ElementRef<HTMLElement>>('scrub');
   private readonly scrubW = signal(600);
 
+  protected readonly ROW_PX = ROW_PX;
   protected readonly current = computed(
     () => this.store.events().find((e) => e.seq === this.store.seq()) ?? null,
   );
-  /** Version tags on the scrubber; a label that would overlap the next one becomes a tick. */
+  /** Version labels, newest first, on whichever of two rows has room (never overlapping). */
+  protected readonly labels = computed(() =>
+    layoutLabels(this.store.versions(), this.store.lastSeq(), Math.max(1, this.scrubW() - 16)),
+  );
+  protected readonly labelRows = computed(() => (this.labels().some((l) => l.row === 1) ? 2 : 1));
+  /** Every event as a thin mark, one SVG path per kind (cheap however long the log gets). */
   protected readonly marks = computed(() => {
-    const last = this.store.lastSeq() || 1;
-    const tags = this.store
-      .events()
-      .filter((e) => e.verb === 'version.tag' && typeof e.to === 'string')
-      .map((e) => ({ seq: e.seq, label: e.to as string, pos: (e.seq / last) * 100 }));
-    const gap = (MARK_PX / Math.max(1, this.scrubW())) * 100;
-    return tags.map((m, i) => ({
-      ...m,
-      // the newest always gets its label; others need MARK_PX to the next one
-      room: i === tags.length - 1 || tags[i + 1].pos - m.pos >= gap,
-    }));
+    const last = Math.max(1, this.store.lastSeq());
+    const d = new Map<string, string[]>(FAMILIES.map((f) => [f, []]));
+    for (const e of this.store.events()) {
+      const x = ((e.seq / last) * 1000).toFixed(1);
+      d.get(familyOf(e.verb))!.push(`M${x} 1V9`);
+    }
+    return FAMILIES.map((family) => ({ family, d: d.get(family)!.join('') })).filter((f) => f.d);
+  });
+  /** The version on screen has its own render, different from the one in the player. */
+  protected readonly canHear = computed(() => {
+    const r = this.store.renderOnScreen();
+    const playing = this.store.audition()?.audio ?? this.store.base()?.audio.master;
+    return this.store.mode() === 'live' && r && r.audio !== playing ? r : null;
   });
 
   constructor() {
@@ -165,6 +205,24 @@ export class VersionTimelineComponent {
       ro.observe(el);
       destroyRef.onDestroy(() => ro.disconnect());
     });
+  }
+
+  /** The readout's line for the event at the position: where, then what changed (the verb is beside it). */
+  protected line(e: AiEvent): string {
+    const c = describeChange(e);
+    const what = !c ? e.reason : c.to === null ? (c.from ?? '') : c.from === null ? c.to : `${c.from} → ${c.to}`;
+    const where = shortTarget(e.target);
+    return where ? `${where} · ${what}` : what;
+  }
+
+  protected labelTitle(v: VersionSpan): string {
+    return `v${v.version} · ${v.title} (events ${v.start}–${v.end}): click to jump to its end`;
+  }
+
+  /** A version label: to the end of that version. */
+  protected jump(span: VersionSpan): void {
+    this.store.stopReplay();
+    this.store.seekSeq(span.end, false);
   }
 
   protected nudge(delta: number): void {

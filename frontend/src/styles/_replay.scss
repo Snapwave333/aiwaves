@@ -37,33 +37,85 @@
   }
 }
 
-.scrub-marks {
-  position: absolute;
-  top: 0;
-  left: var(--sp-2);
-  right: var(--sp-2);
-  height: var(--sp-3);
+// version labels: two rows above the scrubber, never overlapping (click: the end of that version)
+.version-labels {
+  position: relative;
+  margin: 0 var(--sp-2);
 }
 
-.scrub-mark {
+.version-label {
   position: absolute;
-  transform: translateX(-50%);
-  font: var(--aw-fs-micro) / 12px var(--aw-font-mono);
+  height: 14px;
+  padding: 0 4px;
+  border: 0;
+  border-left: 2px solid var(--aw-version);
+  background: color-mix(in srgb, var(--aw-version) 10%, transparent);
   color: var(--aw-version);
+  font: var(--aw-fs-micro) / 14px var(--aw-font-mono);
   white-space: nowrap;
+  cursor: pointer;
 
-  &.tick {
-    width: 2px;
-    height: 6px;
-    margin-top: 6px;
+  &:hover,
+  &:focus-visible {
+    background: color-mix(in srgb, var(--aw-version) 28%, transparent);
+  }
+
+  &.current {
     background: var(--aw-version);
+    color: var(--aw-ink-dark);
+  }
+}
+
+// every event as a thin mark, coloured by kind
+.event-marks {
+  display: block;
+  height: 8px;
+  margin: 2px var(--sp-2) -6px;
+  width: calc(100% - 2 * var(--sp-2));
+
+  .mark {
+    fill: none;
+    stroke-width: 1.2;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .mark-move {
+    stroke: var(--aw-accent);
+  }
+
+  .mark-build {
+    stroke: var(--aw-violet);
+  }
+
+  .mark-note {
+    stroke: var(--aw-faint);
+  }
+
+  .mark-render {
+    stroke: var(--aw-live);
+  }
+
+  .mark-version {
+    stroke: var(--aw-version);
+    stroke-width: 2;
   }
 }
 
 .replay-readout {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  max-width: 40ch;
+  overflow: hidden;
   font: var(--aw-fs-xs) var(--aw-font-mono);
   color: var(--aw-dim);
   white-space: nowrap;
+
+  .readout-change {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--aw-text);
+  }
 
   b {
     color: var(--aw-accent);
@@ -76,5 +128,15 @@
 
   .mat-icon {
     color: var(--aw-live);
+  }
+}
+
+.hear-btn.mat-mdc-button-base {
+  --mat-button-outlined-container-height: 32px;
+  --mat-button-filled-container-height: 32px;
+
+  &.on {
+    --mat-button-filled-container-color: var(--aw-version);
+    --mat-button-filled-label-text-color: var(--aw-ink-dark);
   }
 }
