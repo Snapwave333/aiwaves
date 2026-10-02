@@ -19,7 +19,7 @@
   align-items: center;
   gap: var(--sp-1);
   padding: 0 var(--sp-half) var(--sp-2);
-  @include m.chamfer(var(--aw-cut-sm), var(--aw-line-soft), var(--aw-panel-2));
+  @include m.chamfer(var(--aw-cut-sm), var(--aw-line-soft), var(--aw-panel-2), m.carbon(0.03, 0.18));
   cursor: pointer;
   min-height: 0;
   overflow: hidden;
@@ -237,7 +237,7 @@
   align-items: center;
   gap: 3px;
   padding: 0 0 var(--sp-1);
-  @include m.chamfer(var(--aw-cut-sm), var(--aw-line-soft), var(--aw-panel-2));
+  @include m.chamfer(var(--aw-cut-sm), var(--aw-line-soft), var(--aw-panel-2), m.carbon(0.03, 0.18));
   cursor: pointer;
   transition: background var(--aw-fast) var(--aw-ease);
 

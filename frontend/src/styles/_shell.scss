@@ -21,6 +21,8 @@ app-root {
   padding: 0 var(--sp-2) 0 var(--sp-4);
   background:
     linear-gradient(90deg, color-mix(in srgb, var(--aw-accent) 6%, transparent), transparent 40%),
+    m.$carbon-sheen,
+    m.carbon(),
     var(--aw-titlebar);
   border-bottom: 1px solid var(--aw-line-soft);
   z-index: 10;

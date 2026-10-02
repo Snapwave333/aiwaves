@@ -23,7 +23,8 @@
   overflow: hidden;
   isolation: isolate;
   background:
-    m.$ring-grid,
+    m.$carbon-sheen,
+    m.carbon(),
     radial-gradient(
       120% 140% at 0% 50%,
       color-mix(in srgb, var(--aw-accent) 10%, transparent),

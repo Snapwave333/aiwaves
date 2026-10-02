@@ -22,7 +22,7 @@ body {
       color-mix(in srgb, var(--aw-accent) 7%, transparent),
       transparent 70%
     ),
-    m.$ring-grid, var(--aw-space);
+    m.carbon(0.018, 0.12), var(--aw-space);
 }
 
 button {
@@ -155,7 +155,10 @@ button {
   height: var(--aw-bar-h);
   flex: 0 0 var(--aw-bar-h);
   padding: 0 var(--sp-1) 0 var(--sp-4);
-  background: linear-gradient(100deg, var(--aw-panel-2) 60%, var(--aw-panel) 100%);
+  background:
+    m.$carbon-sheen,
+    m.carbon(0.025),
+    linear-gradient(100deg, var(--aw-panel-2) 60%, var(--aw-panel) 100%);
   border-bottom: 1px solid var(--aw-line-soft);
 
   > .mat-icon {
@@ -209,9 +212,10 @@ button {
   }
 }
 
-// collapsed: just the bar (icon, title, ticker, the open arrow)
+// collapsed: just the bar (icon, title, ticker, the open arrow), never stretched by its row
 .panel.collapsed {
   flex: 0 0 auto;
+  align-self: start;
 
   > .panel-bar {
     border-bottom: 0;
