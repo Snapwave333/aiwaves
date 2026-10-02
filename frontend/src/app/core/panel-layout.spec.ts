@@ -3,13 +3,14 @@ import { DEFAULT_LAYOUT, PRESETS, PanelLayout, sanitizeLayout } from './panel-la
 describe('the workspace layout (docks, sizes, presets, saved layouts)', () => {
   afterEach(() => localStorage.clear());
 
-  it('starts with the player and arrangement in the main dock and everything else folded at the top right', () => {
+  it('starts with the player and arrangement in the main dock, the rest folded at the top right over the live feed', () => {
     const l = new PanelLayout();
     expect(l.dockModules('main')).toEqual(['player', 'arrangement']);
-    expect(l.dockModules('side')).toEqual(['activity', 'history', 'handoff', 'timeline', 'mixer', 'devices']);
+    expect(l.dockModules('side')).toEqual(['timeline', 'history', 'handoff', 'mixer', 'devices', 'activity']);
     expect(l.dockModules('bottom')).toEqual([]);
     expect(l.view('player')).toBe('expanded');
-    for (const id of l.dockModules('side')) expect(l.view(id)).toBe('collapsed');
+    for (const id of ['timeline', 'history', 'handoff', 'mixer', 'devices'] as const) expect(l.view(id)).toBe('collapsed');
+    expect(l.view('activity')).toBe('compact');
   });
 
   it('moves modules between docks and reorders them; the layout survives a relaunch', () => {
@@ -20,7 +21,7 @@ describe('the workspace layout (docks, sizes, presets, saved layouts)', () => {
     l.move('handoff', 'side', 0);
     expect(l.dockModules('bottom')).toEqual(['mixer', 'devices']);
     expect(l.dockModules('main')).toEqual(['player', 'timeline', 'arrangement']);
-    expect(l.dockModules('side')).toEqual(['handoff', 'activity', 'history']);
+    expect(l.dockModules('side')).toEqual(['handoff', 'history', 'activity']);
     expect(l.dockOf('mixer')).toBe('bottom');
     const again = new PanelLayout();
     expect(again.dockModules('main')).toEqual(['player', 'timeline', 'arrangement']);
@@ -35,7 +36,7 @@ describe('the workspace layout (docks, sizes, presets, saved layouts)', () => {
     l.peek('history');
     expect(l.peeking('history')).toBe(false);
     l.toggleVisible('history');
-    expect(l.dockModules('side')).toEqual(['activity', 'history', 'handoff', 'timeline', 'mixer', 'devices']);
+    expect(l.dockModules('side')).toEqual(['timeline', 'history', 'handoff', 'mixer', 'devices', 'activity']);
   });
 
   it('shows one module full screen at a time, and never comes back in full screen', () => {

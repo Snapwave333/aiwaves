@@ -76,7 +76,7 @@ describe('collapsed panels (the default): one row, open for a moment when a chan
 
   it('every panel starts collapsed (an older saved choice does not count); arrows step one size at a time', () => {
     const layout = TestBed.inject(PanelLayout);
-    for (const id of IDS) expect(layout.view(id)).toBe('collapsed');
+    for (const id of IDS) expect(layout.view(id)).toBe(id === 'activity' ? 'compact' : 'collapsed');
     layout.more('mixer');
     expect(layout.view('mixer')).toBe('compact');
     layout.more('mixer');

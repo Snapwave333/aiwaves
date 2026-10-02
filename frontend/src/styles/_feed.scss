@@ -343,6 +343,24 @@
   color: var(--aw-violet-text);
   font-weight: 600;
 
+  // the same agent as the line above: a thin thread instead of the name again (the name stays
+  // for screen readers)
+  &.same {
+    width: 1.2ch;
+    font-size: 0;
+    text-align: center;
+
+    &::before {
+      content: '│';
+      font-size: var(--aw-fs-xs);
+      color: color-mix(in srgb, var(--aw-violet-text) 40%, transparent);
+    }
+
+    &::after {
+      display: none;
+    }
+  }
+
   &::after {
     content: '·';
     margin-left: var(--sp-1);

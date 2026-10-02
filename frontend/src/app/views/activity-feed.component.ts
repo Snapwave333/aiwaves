@@ -71,7 +71,7 @@ import { describeChange, leafTarget, shortTarget } from './format';
                 "
               >
                 <span class="fl-line">
-                  <span class="fl-agent">{{ e.agent }}</span>
+                  <span class="fl-agent" [class.same]="r.sameAgent">{{ e.agent }}</span>
                   <span class="fi-verb" [attr.data-verb]="e.verb.split('.')[0]">{{ e.verb }}</span>
                   @if (r.leaf) {
                     <span class="fl-target">{{ r.leaf }}</span>
@@ -153,9 +153,13 @@ export class ActivityFeedComponent {
   protected readonly short = shortTarget;
   /** Newest first, with the text worked out once per event rather than on every render. */
   protected readonly rows = computed(() =>
-    [...this.store.events()]
-      .reverse()
-      .map((e) => ({ e, change: describeChange(e), leaf: leafTarget(e.target) })),
+    [...this.store.events()].reverse().map((e, i, all) => ({
+      e,
+      change: describeChange(e),
+      leaf: leafTarget(e.target),
+      // the agent's name shows where it changes, not on every line of a run
+      sameAgent: i > 0 && all[i - 1].agent === e.agent,
+    })),
   );
 
   constructor() {

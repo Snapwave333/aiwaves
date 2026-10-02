@@ -79,8 +79,9 @@ function build(spec: Spec): Layout {
   return { order, modules };
 }
 
-/** The preset views. "default" is Eli's: everything but the player and arrangement folded at the
- * top right. */
+/** The preset views. "default": the player and arrangement in the main dock; at the top right the
+ * version timeline, history, handoff, mixer and devices folded to one row each, and the live
+ * activity feed open under them. */
 export const PRESETS: readonly { key: string; name: string; layout: Layout }[] = [
   {
     key: 'default',
@@ -91,12 +92,13 @@ export const PRESETS: readonly { key: string; name: string; layout: Layout }[] =
         ['arrangement', 'expanded'],
       ],
       side: [
-        ['activity', 'collapsed'],
+        ['timeline', 'collapsed'],
         ['history', 'collapsed'],
         ['handoff', 'collapsed'],
-        ['timeline', 'collapsed'],
         ['mixer', 'collapsed'],
         ['devices', 'collapsed'],
+        // the live feed fills what the folded rows leave: watching agents work is the point
+        ['activity', 'compact'],
       ],
     }),
   },

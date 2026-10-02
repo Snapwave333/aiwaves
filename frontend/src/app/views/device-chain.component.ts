@@ -58,7 +58,7 @@ export function typeIcon(type: string): string {
     <div class="panel-bar">
       <mat-icon aria-hidden="true">settings_input_component</mat-icon>
       <h2 class="panel-title">Devices</h2>
-      @if (t) {
+      @if (t && !collapsed()) {
         <span class="panel-sub"
           ><span class="swatch" [style.background]="t.color"></span>{{ t.name }}</span
         >

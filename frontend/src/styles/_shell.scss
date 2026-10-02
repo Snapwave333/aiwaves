@@ -198,9 +198,11 @@ app-root {
     grid-template-columns: minmax(0, 1fr) var(--aw-sheet-w);
   }
 
-  // an expanded module on the side gets more room
+  // the side dock scales with the window; an expanded module there gets more room
+  --aw-sheet-w: clamp(272px, 24vw, 360px);
+
   &.side-wide {
-    --aw-sheet-w: 420px;
+    --aw-sheet-w: clamp(340px, 30vw, 460px);
   }
 }
 
@@ -268,6 +270,13 @@ app-root {
   &[data-size='compact'] {
     flex: 0 1 auto;
     max-height: 48vh;
+  }
+
+  // in the side dock, open modules share the height the folded ones leave
+  .dock[data-dock='side'] > &[data-size='compact'] {
+    flex: 1 1 0;
+    min-height: 140px;
+    max-height: none;
   }
 
   &[data-size='expanded'] {
