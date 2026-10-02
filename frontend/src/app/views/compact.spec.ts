@@ -26,6 +26,7 @@ function fakeBackend(project: Project, events: AiEvent[]) {
     project: async () => structuredClone(fake.current),
     events: async (_id: string, since: number) => events.filter((e) => e.seq > since),
     history: async (): Promise<History> => ({ changelog: [], commits: [], branch: null }),
+    handoff: async () => ({ exists: false, text: '', updated: null }),
     audioUrl: () => '/api/projects/longing/audio/master.wav',
     connect: (_id: string, h: LiveHandlers) => {
       fake.handlers = h;

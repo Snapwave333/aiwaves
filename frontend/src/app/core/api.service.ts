@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { APP_CONFIG } from './config';
 import { DataSource, LiveHandlers } from './data-source';
-import { AiEvent, History, LiveMessage, Project, ProjectSummary } from './model';
+import { AiEvent, Handoff, History, LiveMessage, Project, ProjectSummary } from './model';
 import { audioPath, isAiEvent, isProject } from './validate';
 
 const PAGE = 500;
@@ -55,6 +55,10 @@ export class ApiService extends DataSource {
 
   history(id: string): Promise<History> {
     return this.get(`/api/projects/${encodeURIComponent(id)}/history`);
+  }
+
+  handoff(id: string): Promise<Handoff> {
+    return this.get(`/api/projects/${encodeURIComponent(id)}/411`);
   }
 
   audioUrl(project: Project): string | null {

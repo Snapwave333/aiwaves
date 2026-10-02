@@ -1,12 +1,12 @@
 import { Injectable, signal } from '@angular/core';
 import { AiEvent } from './model';
 
-export type PanelId = 'mixer' | 'devices' | 'activity' | 'history' | 'timeline';
+export type PanelId = 'mixer' | 'devices' | 'activity' | 'history' | 'timeline' | 'handoff';
 /** collapsed: one row (icon, title, a ticker, the expand arrow); compact; expanded. */
 export type PanelState = 'collapsed' | 'compact' | 'expanded';
 
 /** Panels that fold down to one row. Collapsed is their default. */
-const FOLDING: readonly PanelId[] = ['mixer', 'devices', 'activity', 'history', 'timeline'];
+const FOLDING: readonly PanelId[] = ['mixer', 'devices', 'activity', 'history', 'timeline', 'handoff'];
 /** v2: everyone starts collapsed once, whatever they chose before (Eli, 2026-10-01). */
 const key = (id: PanelId) => `aiwaves.panel.v2.${id}`;
 /** How long a collapsed panel stays open after the last change shown in it. */

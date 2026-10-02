@@ -3,10 +3,11 @@ import { Animator } from '../core/animator.service';
 import { ApiService } from '../core/api.service';
 import { APP_CONFIG, readConfig } from '../core/config';
 import { LiveHandlers } from '../core/data-source';
-import { AiEvent, History, Project } from '../core/model';
+import { AiEvent, Handoff, History, Project } from '../core/model';
 import { PEEK_MS, PanelLayout, panelOf } from '../core/panel-layout';
 import { WorkspaceStore } from '../core/workspace.store';
 import { ev, longing } from '../testing/fixtures';
+import { HandoffComponent } from './handoff.component';
 import { MixerComponent } from './mixer.component';
 import { SidePanelComponent } from './side-panel.component';
 import { VersionTimelineComponent } from './version-timeline.component';
@@ -24,6 +25,8 @@ function fakeBackend(project: Project, events: AiEvent[]) {
     project: async () => structuredClone(fake.current),
     events: async (_id: string, since: number) => events.filter((e) => e.seq > since),
     history: async (): Promise<History> => ({ changelog: [], commits: [], branch: null }),
+    doc: { exists: false, text: '', updated: null } as Handoff,
+    handoff: async () => fake.doc,
     audioUrl: (p: Project) => `/api/projects/longing/${p.audio.master}`,
     connect: (_id: string, h: LiveHandlers) => {
       fake.handlers = h;
@@ -191,6 +194,25 @@ describe('collapsed panels (the default): one row, open for a moment when a chan
     expect(store.seq()).toBe(spans[spans.indexOf(span) + 1].end);
     store.stepVersion(-1);
     expect(store.seq()).toBe(span.end);
+  });
+
+  it('aiwave411: the handoff panel shows the document and refreshes when an agent updates it', async () => {
+    TestBed.inject(PanelLayout).more('handoff');
+    const f = TestBed.createComponent(HandoffComponent);
+    await f.whenStable();
+    const el = f.nativeElement as HTMLElement;
+    expect(el.querySelector('.empty')!.textContent).toContain('aiwaves 411 init longing');
+
+    const text = ['# Longing', '', '## Rules', '', '- keep her vocal chain'].join('\n');
+    backend.doc = { exists: true, text, updated: '2026-10-01T12:00:00Z' };
+    await push({ ...ev(LAST + 1, 'doc.update', 'aiwave411.md', null, { how: 'set' }), reason: 'rules written down' });
+    await f.whenStable();
+    expect(el.querySelector('.handoff-body h3')!.textContent).toBe('Rules');
+    expect(el.querySelector('.handoff-body li')!.textContent).toBe('keep her vocal chain');
+
+    TestBed.inject(PanelLayout).less('handoff');
+    await f.whenStable();
+    expect(el.querySelector('.panel-ticker')!.textContent).toBe('test · rules written down');
   });
 
   it('collapsed history says the latest version; collapsed timeline says where the views are', async () => {

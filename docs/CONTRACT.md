@@ -210,3 +210,27 @@ it is unsaved. Covers are a *viewer preference*, not song state: they never touc
 "saved": false, "palette": ["#rrggbb", …], "created": "RFC 3339" }`. Generation takes about a
 second; the server gives up after 30 s (`503 { "error": … }`). Mock/offline mode: the frontend
 draws its own placeholder art.
+
+## 11. aiwave411.md: the agent handoff document (v0.4)
+
+Every project folder may hold `aiwave411.md`: the handoff for agents working on that song or sound
+design, in the spirit of a `CLAUDE.md`. What the project is, how it is made (renderer, sources,
+export command), the rules that must hold (licences, what the human asked for, what never to
+change), where it stands, what is next, and a dated log. **Agents read it before they change
+anything and keep it current**; humans read it in the workspace (the aiwave411 panel), live.
+
+| Method | Path | Result |
+|---|---|---|
+| GET | `/api/projects/{id}/411` | `{ "exists", "file": "aiwave411.md", "text", "updated", "summary" }` (`exists: false`, empty text when there is none) |
+| PUT | `/api/projects/{id}/411` | replace it: body `{ "text", "reason", "agent"? }` → `{ "event" }` |
+| POST | `/api/projects/{id}/411/append` | add a block at the end (a blank line before it): same body → `{ "event" }` |
+| POST | `/api/projects/{id}/411/init` | create it from the project (title, form, tracks and devices, latest version, empty sections to fill) → `201 { "event" }`; `409` if it exists |
+
+Writes need the token, a non-empty `reason`, and stay under 256 KB. Each write is one event,
+verb **`doc.update`**, target `"aiwave411.md"`, `to: { "how": "set" | "append" | "init",
+"summary": { "lines", "bytes", "headings", "fingerprint" } }`: the log records that the document
+changed and why, never its text. `doc.update` leaves `project.json` as it is (like `note`); viewers
+re-fetch the document when it arrives.
+
+CLI: `aiwaves 411 show <project>` · `aiwaves 411 init <project>` ·
+`aiwaves 411 set <project> <file|-> --reason "…"` · `aiwaves 411 append <project> --text "…" --reason "…"`.

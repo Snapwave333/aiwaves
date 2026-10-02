@@ -1,0 +1,103 @@
+// aiwave411.md: the agent handoff document, rendered (core/markdown.ts produces these tags only).
+
+.handoff-body {
+  overflow: auto;
+  padding: var(--sp-2) var(--sp-4) var(--sp-4);
+  max-height: 42vh;
+  font: var(--aw-fs-sm) / 1.5 var(--aw-font-body);
+  color: var(--aw-text);
+}
+
+.handoff:not(.compact) .handoff-body {
+  max-height: 72vh;
+}
+
+.md {
+  h2,
+  h3,
+  h4 {
+    margin: var(--sp-4) 0 var(--sp-1);
+    font-family: var(--aw-font-display);
+    letter-spacing: var(--aw-track-label);
+    color: var(--aw-accent);
+  }
+
+  h2 {
+    margin-top: var(--sp-1);
+    font-size: var(--aw-fs-md);
+  }
+
+  h3 {
+    font-size: var(--aw-fs-sm);
+    text-transform: uppercase;
+  }
+
+  h4 {
+    font-size: var(--aw-fs-xs);
+    color: var(--aw-dim);
+  }
+
+  p,
+  ul,
+  ol,
+  blockquote,
+  table,
+  pre {
+    margin: 0 0 var(--sp-2);
+  }
+
+  ul,
+  ol {
+    padding-left: 1.3em;
+  }
+
+  li + li {
+    margin-top: 2px;
+  }
+
+  blockquote {
+    padding: var(--sp-1) var(--sp-3);
+    border-left: 2px solid var(--aw-accent);
+    color: var(--aw-dim);
+    background: color-mix(in srgb, var(--aw-accent) 6%, transparent);
+  }
+
+  code {
+    padding: 0 3px;
+    font: var(--aw-fs-xs) var(--aw-font-mono);
+    background: var(--aw-well);
+    color: var(--aw-violet-text);
+  }
+
+  pre {
+    overflow: auto;
+    padding: var(--sp-2);
+    background: var(--aw-well);
+
+    code {
+      padding: 0;
+      background: none;
+    }
+  }
+
+  table {
+    border-collapse: collapse;
+    font-size: var(--aw-fs-xs);
+  }
+
+  th,
+  td {
+    padding: 2px var(--sp-2);
+    border: 1px solid var(--aw-line-soft);
+    text-align: left;
+  }
+
+  th {
+    color: var(--aw-dim);
+  }
+
+  .md-link {
+    color: var(--aw-accent);
+    text-decoration: underline dotted;
+  }
+}

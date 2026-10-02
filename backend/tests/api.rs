@@ -836,3 +836,77 @@ async fn covers_playthroughs_saving_and_pruning() {
     // covers never touch the song
     assert_eq!(s.log_lines().len(), last() as usize);
 }
+
+// --- aiwave411.md (CONTRACT §11) ------------------------------------------------------------------
+
+impl Server {
+    async fn doc(&self, method: reqwest::Method, path: &str, body: Value, token: Option<&str>) -> (u16, Value) {
+        let mut req = self
+            .http
+            .request(method, format!("{}/api/projects/longing/411{path}", self.base))
+            .json(&body);
+        if let Some(t) = token {
+            req = req.bearer_auth(t);
+        }
+        let res = req.send().await.unwrap();
+        let status = res.status().as_u16();
+        (status, res.json().await.unwrap_or(Value::Null))
+    }
+}
+
+#[tokio::test]
+async fn handoff_doc_is_created_from_the_project_then_replaced_and_appended() {
+    use reqwest::Method;
+    let s = start().await;
+    let (status, doc) = s.get("/api/projects/longing/411").await;
+    assert_eq!(status, 200);
+    assert_eq!(doc["exists"], json!(false));
+
+    // writes need the token
+    for (m, p) in [(Method::POST, "/init"), (Method::PUT, ""), (Method::POST, "/append")] {
+        let (status, _) = s.doc(m, p, json!({ "text": "x", "reason": "r" }), Some("wrong")).await;
+        assert_eq!(status, 401);
+    }
+    assert_eq!(s.log_lines().len(), last() as usize);
+
+    // init: made from the project; a second init is a conflict
+    let (status, body) = s.doc(Method::POST, "/init", json!({ "agent": "claude" }), Some(TOKEN)).await;
+    assert_eq!(status, 201, "{body}");
+    assert_eq!(body["event"]["verb"], "doc.update");
+    assert_eq!(body["event"]["target"], "aiwave411.md");
+    assert_eq!(body["event"]["to"]["how"], "init");
+    let (_, doc) = s.get("/api/projects/longing/411").await;
+    let text = doc["text"].as_str().unwrap();
+    assert!(text.starts_with("# aiwave411: Longing"));
+    assert!(text.contains("## Tracks and devices"));
+    for t in fixture_project()["tracks"].as_array().unwrap() {
+        assert!(text.contains(t["name"].as_str().unwrap()), "missing track {}", t["name"]);
+    }
+    let (status, _) = s.doc(Method::POST, "/init", json!({}), Some(TOKEN)).await;
+    assert_eq!(status, 409);
+
+    // set and append: each one event, with a summary (never the text)
+    let (status, _) = s.doc(Method::PUT, "", json!({ "text": "# A\n\n## One\n", "reason": "rewrite" }), Some(TOKEN)).await;
+    assert_eq!(status, 200);
+    let (status, body) = s.doc(Method::POST, "/append", json!({ "text": "## Two\n- next: the drop", "reason": "a note" }), Some(TOKEN)).await;
+    assert_eq!(status, 200);
+    assert_eq!(body["event"]["to"]["summary"]["headings"], json!(["One", "Two"]));
+    let (_, doc) = s.get("/api/projects/longing/411").await;
+    assert_eq!(doc["text"], "# A\n\n## One\n\n## Two\n- next: the drop\n");
+    let log = s.log_lines();
+    assert_eq!(log.len(), last() as usize + 3);
+    assert!(log.iter().rev().take(3).all(|e| e["verb"] == "doc.update"));
+    assert!(!log.last().unwrap().to_string().contains("next: the drop"), "the log carries a summary, not the text");
+
+    // a reason is required; the size is capped; the project itself is untouched
+    let (status, _) = s.doc(Method::PUT, "", json!({ "text": "x", "reason": " " }), Some(TOKEN)).await;
+    assert_eq!(status, 400);
+    let big = "x".repeat(aiwaves::handoff::MAX_BYTES + 1);
+    let (status, _) = s.doc(Method::PUT, "", json!({ "text": big, "reason": "too big" }), Some(TOKEN)).await;
+    assert_eq!(status, 400);
+    let mut on_disk = s.project_on_disk();
+    let mut fixture = fixture_project();
+    on_disk["version"] = Value::Null;
+    fixture["version"] = Value::Null;
+    assert_eq!(on_disk["tracks"], fixture["tracks"]);
+}

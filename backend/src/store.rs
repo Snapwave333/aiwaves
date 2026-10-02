@@ -161,6 +161,11 @@ impl ProjectHandle {
         (g.project.clone(), last, rx)
     }
 
+    /// The project's folder (project.json, events.jsonl, aiwave411.md, audio/, covers/).
+    pub fn dir(&self) -> &Path {
+        &self.dir
+    }
+
     pub fn audio_dir(&self) -> PathBuf {
         self.dir.join("audio")
     }

@@ -99,6 +99,49 @@ pub enum Cmd {
         #[command(subcommand)]
         action: SynthCmd,
     },
+    /// The project's agent handoff document, aiwave411.md (CONTRACT §11): read it first, keep it current.
+    #[command(name = "411")]
+    Handoff {
+        #[command(subcommand)]
+        action: HandoffCmd,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum HandoffCmd {
+    /// Print it (Markdown; --json for the whole response).
+    Show {
+        project: String,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Create it from the project (title, form, tracks, latest version) when it doesn't exist yet.
+    Init {
+        project: String,
+        #[arg(long)]
+        reason: Option<String>,
+        #[arg(long, env = "AIWAVES_AGENT", default_value = "agent")]
+        agent: String,
+    },
+    /// Replace it with a file's contents ("-" reads stdin).
+    Set {
+        project: String,
+        file: PathBuf,
+        #[arg(long)]
+        reason: String,
+        #[arg(long, env = "AIWAVES_AGENT", default_value = "agent")]
+        agent: String,
+    },
+    /// Add a block of Markdown at the end.
+    Append {
+        project: String,
+        #[arg(long)]
+        text: String,
+        #[arg(long)]
+        reason: String,
+        #[arg(long, env = "AIWAVES_AGENT", default_value = "agent")]
+        agent: String,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -185,6 +228,17 @@ impl Client {
 
     async fn get(&self, path: &str) -> CliResult<Value> {
         self.send(self.http.get(format!("{}{path}", self.base)))
+            .await
+    }
+
+    /// A write with the token (PUT / POST with a JSON body).
+    async fn write(&self, method: reqwest::Method, path: &str, body: &Value) -> CliResult<Value> {
+        let token = self
+            .token
+            .as_deref()
+            .ok_or_else(|| CliError::msg("no token: pass --token or set AIWAVES_TOKEN"))?;
+        let url = format!("{}{path}", self.base);
+        self.send(self.http.request(method, url).bearer_auth(token).json(body))
             .await
     }
 
@@ -327,7 +381,50 @@ async fn run_inner(cli: Cli) -> CliResult<()> {
             snapshot,
         } => import_events(&client, &project, file, delay_ms, snapshot).await,
         Cmd::Synth { action } => synth(&client, action).await,
+        Cmd::Handoff { action } => handoff(&client, action).await,
     }
+}
+
+async fn handoff(client: &Client, action: HandoffCmd) -> CliResult<()> {
+    use reqwest::Method;
+    let at = |p: &str| format!("/api/projects/{p}/411");
+    let res = match action {
+        HandoffCmd::Show { project, json } => {
+            let doc = client.get(&at(&project)).await?;
+            if json {
+                return print_pretty(&doc);
+            }
+            if doc["exists"] != json!(true) {
+                return Err(CliError::msg(format!(
+                    "{project} has no aiwave411.md yet (create it: aiwaves 411 init {project})"
+                )));
+            }
+            print!("{}", doc["text"].as_str().unwrap_or(""));
+            return Ok(());
+        }
+        HandoffCmd::Init { project, reason, agent } => {
+            let body = json!({ "reason": reason, "agent": agent });
+            client.write(Method::POST, &format!("{}/init", at(&project)), &body).await?
+        }
+        HandoffCmd::Set { project, file, reason, agent } => {
+            let text = if file.as_os_str() == "-" {
+                let mut t = String::new();
+                std::io::Read::read_to_string(&mut std::io::stdin(), &mut t)
+                    .map_err(|e| CliError::msg(format!("stdin: {e}")))?;
+                t
+            } else {
+                std::fs::read_to_string(&file)
+                    .map_err(|e| CliError::msg(format!("{}: {e}", file.display())))?
+            };
+            let body = json!({ "text": text, "reason": reason, "agent": agent });
+            client.write(Method::PUT, &at(&project), &body).await?
+        }
+        HandoffCmd::Append { project, text, reason, agent } => {
+            let body = json!({ "text": text, "reason": reason, "agent": agent });
+            client.write(Method::POST, &format!("{}/append", at(&project)), &body).await?
+        }
+    };
+    print_pretty(&res)
 }
 
 async fn synth(client: &Client, action: SynthCmd) -> CliResult<()> {

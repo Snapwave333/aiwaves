@@ -24,6 +24,7 @@ function fakeBackend(project: Project, events: AiEvent[]) {
       return events.filter((e) => e.seq > since);
     },
     history: async () => ({ changelog: [], commits: [], branch: null }),
+    handoff: async () => ({ exists: false, text: '', updated: null }),
     audioUrl: () => '/api/projects/longing/audio/master.wav',
     connect: (_id: string, h: LiveHandlers) => {
       fake.handlers = h;

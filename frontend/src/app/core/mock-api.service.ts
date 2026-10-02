@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { APP_CONFIG } from './config';
-import { DataSource, EMPTY_HISTORY, LiveHandlers } from './data-source';
-import { AiEvent, History, Project, ProjectSummary } from './model';
+import { DataSource, EMPTY_HANDOFF, EMPTY_HISTORY, LiveHandlers } from './data-source';
+import { AiEvent, History, Project, ProjectSummary, Handoff } from './model';
 import { isAiEvent } from './validate';
 
 /** Serves the Longing fixture copied into public/demo/longing (scripts/copy-fixtures.mjs). */
@@ -39,6 +39,11 @@ export class MockApiService extends DataSource {
   async history(): Promise<History> {
     const res = await fetch(`${this.cfg.demoBase}/history.json`);
     return res.ok ? ((await res.json()) as History) : EMPTY_HISTORY;
+  }
+
+  async handoff(): Promise<Handoff> {
+    const res = await fetch(`${this.cfg.demoBase}/aiwave411.md`).catch(() => null);
+    return res?.ok ? { exists: true, text: await res.text(), updated: null } : EMPTY_HANDOFF;
   }
 
   audioUrl(): string {

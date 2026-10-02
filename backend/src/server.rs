@@ -8,6 +8,7 @@ use axum::extract::{Path, Query, Request, State};
 use axum::http::{HeaderMap, HeaderValue, Method, StatusCode, header};
 use axum::response::{IntoResponse, Response};
 use axum::routing::{any, delete, get, post};
+use serde::Deserialize;
 use axum::{Json, Router};
 use futures_util::{SinkExt, StreamExt};
 use serde_json::{Value, json};
@@ -79,6 +80,10 @@ pub fn router(state: AppState, static_dir: Option<PathBuf>) -> Router {
         .route("/api/projects/{id}/audio/{file}", get(project_audio))
         .route("/api/projects/{id}/commands", post(post_command))
         .route("/api/projects/{id}/live", get(live))
+        // the agent handoff document, aiwave411.md (CONTRACT §11); writes need the token
+        .route("/api/projects/{id}/411", get(get_411).put(put_411))
+        .route("/api/projects/{id}/411/append", post(append_411))
+        .route("/api/projects/{id}/411/init", post(init_411))
         // cover art: a viewer preference, the only routes a viewer may write to (CONTRACT §10)
         .route(
             "/api/projects/{id}/covers",
@@ -112,7 +117,7 @@ pub fn router(state: AppState, static_dir: Option<PathBuf>) -> Router {
     app.layer(
         CorsLayer::new()
             .allow_origin(origins)
-            .allow_methods([Method::GET, Method::POST, Method::DELETE, Method::OPTIONS])
+            .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE, Method::OPTIONS])
             .allow_headers([header::AUTHORIZATION, header::CONTENT_TYPE, header::RANGE])
             .expose_headers([
                 header::CONTENT_RANGE,
@@ -249,6 +254,101 @@ async fn post_command(
         StatusCode::CREATED,
         Json(json!({ "event": event, "version": version })),
     ))
+}
+
+// --- aiwave411.md -------------------------------------------------------------------------------
+
+#[derive(Deserialize)]
+struct DocWrite {
+    text: String,
+    #[serde(default)]
+    reason: String,
+    #[serde(default)]
+    agent: Option<String>,
+}
+
+#[derive(Deserialize, Default)]
+struct DocInit {
+    #[serde(default)]
+    reason: Option<String>,
+    #[serde(default)]
+    agent: Option<String>,
+}
+
+fn need_token(headers: &HeaderMap, s: &AppState) -> ApiResult<()> {
+    if authorized(headers, &s.token) {
+        Ok(())
+    } else {
+        Err(ApiError(
+            StatusCode::UNAUTHORIZED,
+            "missing or wrong token (Authorization: Bearer <AIWAVES_TOKEN>)".into(),
+        ))
+    }
+}
+
+/// The handoff document: `{exists, file, text, updated, summary}`.
+async fn get_411(State(s): State<AppState>, Path(id): Path<String>) -> ApiResult<Json<Value>> {
+    let h = s.project(&id)?;
+    Ok(Json(crate::handoff::read(&h)))
+}
+
+async fn blocking<T: Send + 'static>(f: impl FnOnce() -> T + Send + 'static) -> ApiResult<T> {
+    tokio::task::spawn_blocking(f)
+        .await
+        .map_err(|e| ApiError(StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))
+}
+
+fn doc_body<T: serde::de::DeserializeOwned>(body: &Bytes) -> ApiResult<T> {
+    serde_json::from_slice(body).map_err(|e| bad_request(format!("invalid JSON: {e}")))
+}
+
+async fn put_411(
+    State(s): State<AppState>,
+    Path(id): Path<String>,
+    headers: HeaderMap,
+    body: Bytes,
+) -> ApiResult<Json<Value>> {
+    need_token(&headers, &s)?;
+    let h = s.project(&id)?;
+    let w: DocWrite = doc_body(&body)?;
+    let event = blocking(move || crate::handoff::write(&h, &w.text, w.agent, w.reason, "set")).await??;
+    Ok(Json(json!({ "event": event })))
+}
+
+async fn append_411(
+    State(s): State<AppState>,
+    Path(id): Path<String>,
+    headers: HeaderMap,
+    body: Bytes,
+) -> ApiResult<Json<Value>> {
+    need_token(&headers, &s)?;
+    let h = s.project(&id)?;
+    let w: DocWrite = doc_body(&body)?;
+    let event = blocking(move || crate::handoff::append(&h, &w.text, w.agent, w.reason)).await??;
+    Ok(Json(json!({ "event": event })))
+}
+
+/// Creates the document from the project (409 if it exists: use PUT to replace it).
+async fn init_411(
+    State(s): State<AppState>,
+    Path(id): Path<String>,
+    headers: HeaderMap,
+    body: Bytes,
+) -> ApiResult<(StatusCode, Json<Value>)> {
+    need_token(&headers, &s)?;
+    let h = s.project(&id)?;
+    let w: DocInit = if body.is_empty() { DocInit::default() } else { doc_body(&body)? };
+    if crate::handoff::read(&h)["exists"] == json!(true) {
+        return Err(ApiError(
+            StatusCode::CONFLICT,
+            format!("{} exists already (replace it with PUT /411)", crate::handoff::FILE),
+        ));
+    }
+    let project = serde_json::to_value(h.project()).unwrap_or(Value::Null);
+    let text = crate::handoff::template(&project, &h.history());
+    let reason = w.reason.unwrap_or_else(|| "created from the project".into());
+    let event = blocking(move || crate::handoff::write(&h, &text, w.agent, reason, "init")).await??;
+    Ok((StatusCode::CREATED, Json(json!({ "event": event }))))
 }
 
 async fn live(

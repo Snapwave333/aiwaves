@@ -15,7 +15,7 @@ if (!existsSync(src)) {
 }
 
 mkdirSync(join(dst, 'audio'), { recursive: true });
-for (const f of ['project.json', 'events.jsonl', 'history.json']) {
+for (const f of ['project.json', 'events.jsonl', 'history.json', 'aiwave411.md']) {
   if (existsSync(join(src, f))) copyFileSync(join(src, f), join(dst, f));
 }
 

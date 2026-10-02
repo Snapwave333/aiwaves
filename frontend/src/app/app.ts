@@ -19,6 +19,7 @@ import { ActivityFeedComponent } from './views/activity-feed.component';
 import { ArrangementComponent } from './views/arrangement.component';
 import { CaptionOverlayComponent } from './views/caption-overlay.component';
 import { DeviceChainComponent } from './views/device-chain.component';
+import { HandoffComponent } from './views/handoff.component';
 import { MixerComponent } from './views/mixer.component';
 import { VersionTimelineComponent } from './views/version-timeline.component';
 import { SidePanelComponent } from './views/side-panel.component';
@@ -38,6 +39,7 @@ import { SidePanelComponent } from './views/side-panel.component';
     ActivityFeedComponent,
     VersionTimelineComponent,
     SidePanelComponent,
+    HandoffComponent,
     CaptionOverlayComponent,
   ],
   host: { '(document:keydown)': 'onKey($event)' },

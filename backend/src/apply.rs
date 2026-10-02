@@ -24,6 +24,7 @@ pub const VERBS: &[&str] = &[
     "render.done",
     "note",
     "version.tag",
+    "doc.update",
 ];
 
 /// Ranges for controls that have no min/max in the project file (see CONTRACT_NOTES.md).
@@ -315,7 +316,8 @@ pub fn apply(project: &Project, event: &Event) -> Result<Project> {
     let mut p = project.clone();
     let to = &event.to;
     match verb {
-        "note" => {}
+        // notes and handoff-document updates (aiwave411.md) leave the project as it is
+        "note" | "doc.update" => {}
         "version.tag" => {
             text(to, "version.tag")?;
         }

@@ -116,6 +116,14 @@ export interface AiEvent {
   version?: string | null;
 }
 
+/** aiwave411.md, the project's agent handoff document (CONTRACT §11). */
+export interface Handoff {
+  exists: boolean;
+  text: string;
+  /** When the file was last written (RFC 3339), null when unknown. */
+  updated: string | null;
+}
+
 export interface ChangelogEntry {
   version: string;
   date: string;

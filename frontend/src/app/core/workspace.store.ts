@@ -13,9 +13,9 @@ import {
   versionAt,
 } from './apply';
 import { APP_CONFIG } from './config';
-import { DataSource, EMPTY_HISTORY, LinkStatus } from './data-source';
+import { DataSource, EMPTY_HANDOFF, EMPTY_HISTORY, LinkStatus } from './data-source';
 import { MockApiService } from './mock-api.service';
-import { AiEvent, History, Project } from './model';
+import { AiEvent, Handoff, History, Project } from './model';
 import { Render, renderAt, versionSpans, versionStep } from './timeline';
 import { isProject, sanitizeProject } from './validate';
 
@@ -23,6 +23,8 @@ export const REPLAY_STEP_MS = 1500;
 const BACKEND_RECHECK_MS = 15_000;
 /** Live events after which `/history` has something new. */
 const HISTORY_VERBS: ReadonlySet<string> = new Set(['version.tag', 'render.done']);
+/** Verbs that never change project.json: no need to re-fetch the project after them. */
+const STATELESS_VERBS: ReadonlySet<string> = new Set(['note', 'version.tag', 'doc.update']);
 
 /**
  * All workspace state. Data (project, events, history) comes only from the DataSource; everything
@@ -44,6 +46,8 @@ export class WorkspaceStore {
   readonly base = signal<Project | null>(null);
   readonly events = signal<AiEvent[]>([]);
   readonly history = signal<History>(EMPTY_HISTORY);
+  /** aiwave411.md, the agent handoff document (CONTRACT §11). */
+  readonly handoff = signal<Handoff>(EMPTY_HANDOFF);
 
   /** Replay position; null follows the live head. */
   readonly viewSeq = signal<number | null>(null);
@@ -107,15 +111,17 @@ export class WorkspaceStore {
     try {
       this.projectId =
         this.cfg.projectId ?? (live ? (await this.api.listProjects())[0]?.id : null) ?? 'longing';
-      const [project, events, history] = await Promise.all([
+      const [project, events, history, handoff] = await Promise.all([
         src.project(this.projectId),
         src.events(this.projectId, 0),
         src.history(this.projectId).catch(() => EMPTY_HISTORY),
+        src.handoff(this.projectId).catch(() => EMPTY_HANDOFF),
       ]);
       if (!isProject(project)) throw new Error('the project is malformed');
       this.base.set(sanitizeProject(project));
       this.events.set(mergeEvents([], events));
       this.history.set(history);
+      this.handoff.set(handoff);
       this.loadError.set(null);
     } catch (e) {
       this.loadError.set(e instanceof Error ? e.message : String(e));
@@ -267,7 +273,7 @@ export class WorkspaceStore {
     for (const e of batch) {
       this.events.update((ev) => mergeEvents(ev, [e]));
       this.base.update((b) => (b ? apply(b, e) : b));
-      needsRefetch ||= !MIRRORED_VERBS.has(e.verb);
+      needsRefetch ||= !MIRRORED_VERBS.has(e.verb) && !STATELESS_VERBS.has(e.verb);
     }
     const following = this.viewSeq() === null;
     if (following) this.present(event, 1);
@@ -277,6 +283,11 @@ export class WorkspaceStore {
         this.base.set(sanitizeProject(fresh));
     }
     // a new version or render means a new changelog entry / commit: the side panel shows it
+    // an agent updated the handoff document: show the new text
+    if (batch.some((e) => e.verb === 'doc.update') && this.source) {
+      const doc = await this.source.handoff(this.projectId).catch(() => null);
+      if (doc) this.handoff.set(doc);
+    }
     if (batch.some((e) => HISTORY_VERBS.has(e.verb)) && this.source) {
       const history = await this.source.history(this.projectId).catch(() => null);
       if (history) this.history.set(history);

@@ -1,4 +1,4 @@
-import { AiEvent, History, Project, ProjectSummary } from './model';
+import { AiEvent, Handoff, History, Project, ProjectSummary } from './model';
 
 export type LinkStatus = 'connecting' | 'open' | 'reconnecting' | 'demo';
 
@@ -16,6 +16,8 @@ export abstract class DataSource {
   /** All events with seq > since, ascending. */
   abstract events(id: string, since: number): Promise<AiEvent[]>;
   abstract history(id: string): Promise<History>;
+  /** aiwave411.md (CONTRACT §11). */
+  abstract handoff(id: string): Promise<Handoff>;
   /** Null when the project's audio path is unusable. */
   abstract audioUrl(project: Project): string | null;
   /** Opens the live feed; returns a function that closes it for good. */
@@ -23,3 +25,4 @@ export abstract class DataSource {
 }
 
 export const EMPTY_HISTORY: History = { changelog: [], commits: [], branch: null };
+export const EMPTY_HANDOFF: Handoff = { exists: false, text: '', updated: null };
