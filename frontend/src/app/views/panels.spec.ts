@@ -243,3 +243,14 @@ describe('collapsed panels (the default): one row, open for a moment when a chan
     expect(row()).toMatch(/NOW$/);
   });
 });
+
+describe('the feed text for handoff updates', () => {
+  it('reads "aiwave411.md · set · 76 lines", not raw JSON or "md"', async () => {
+    const { describeChange, leafTarget } = await import('./format');
+    expect(leafTarget('aiwave411.md')).toBe('aiwave411.md');
+    expect(leafTarget('tracks.growl.devices.hp.params.cutoff')).toBe('cutoff');
+    expect(leafTarget('chords.12')).toBe('12');
+    const e = { verb: 'doc.update', target: 'aiwave411.md', from: null, to: { how: 'set', summary: { lines: 76, bytes: 4000 } } };
+    expect(describeChange(e)).toEqual({ from: null, to: 'set · 76 lines' });
+  });
+});

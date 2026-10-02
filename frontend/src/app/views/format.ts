@@ -31,6 +31,12 @@ function describeObject(o: { [key: string]: Json }, kind: string): string {
     const d = num(o['duration_s']);
     return d === null ? fileName(audio) : `${fileName(audio)} · ${formatClock(d)}`;
   }
+  // a handoff document update (aiwave411.md): how it was written and how long it is now
+  const summary = o['summary'];
+  if (typeof o['how'] === 'string' && summary && typeof summary === 'object' && !Array.isArray(summary)) {
+    const lines = num(summary['lines']);
+    return lines === null ? o['how'] : `${o['how']} · ${lines} lines`;
+  }
   if (kind === 'clip') {
     const notes = Array.isArray(o['notes']) ? o['notes'].length : 0;
     const start = num(o['start_bar']);
@@ -95,7 +101,10 @@ export function shortTarget(target: string | null): string {
     .replace(/\.mixer$/, ' › mixer');
 }
 
-/** "tracks.zither.devices.echo.params.feedback" -> "feedback". */
+/** "tracks.zither.devices.echo.params.feedback" -> "feedback"; a file name ("aiwave411.md") stays whole. */
 export function leafTarget(target: string | null): string {
-  return target?.split('.').pop() ?? '';
+  if (!target) return '';
+  const isPath = /^(tracks|sections|chords)\./.test(target);
+  if (!isPath && /^[\w-]+\.[a-z0-9]{1,4}$/i.test(target)) return target;
+  return target.split('.').pop() ?? '';
 }
