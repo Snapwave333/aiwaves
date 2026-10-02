@@ -38,11 +38,19 @@
   [class.sheet-closed]="!sheetOpen()"
   [class.bottom-compact]="bottomCompact()"
   [class.sheet-compact]="sheetCompact()"
+  [class.sheet-collapsed]="feedCollapsed() && historyCollapsed()"
 >
   <aw-player class="area-player" />
   <aw-arrangement class="area-arr" />
-  <aw-replay-bar class="area-replay" />
-  <aside class="area-sheet" id="aw-sheet" aria-label="Activity and history" [hidden]="!sheetOpen()">
+  <aw-version-timeline class="area-replay" />
+  <aside
+    class="area-sheet"
+    id="aw-sheet"
+    aria-label="Activity and history"
+    [hidden]="!sheetOpen()"
+    [class.feed-collapsed]="feedCollapsed()"
+    [class.history-collapsed]="historyCollapsed()"
+  >
     @defer (on idle) {
       <aw-activity-feed />
       <aw-side-panel />

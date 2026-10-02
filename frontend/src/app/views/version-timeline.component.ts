@@ -13,17 +13,40 @@ import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatSlider, MatSliderThumb } from '@angular/material/slider';
 import { MatTooltip } from '@angular/material/tooltip';
+import { PanelLayout } from '../core/panel-layout';
 import { WorkspaceStore } from '../core/workspace.store';
+import { PanelStepsComponent } from '../ui/panel-steps.component';
 
 /** Room (px) a version label needs before the next one. */
 const MARK_PX = 34;
 
+/** The version timeline: every event the song was built from, by version; replay, step, scrub, now. */
 @Component({
-  selector: 'aw-replay-bar',
+  selector: 'aw-version-timeline',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatButton, MatIconButton, MatIcon, MatSlider, MatSliderThumb, MatTooltip],
-  host: { class: 'replay', role: 'region', 'aria-label': 'Replay' },
+  imports: [MatButton, MatIconButton, MatIcon, MatSlider, MatSliderThumb, MatTooltip, PanelStepsComponent],
+  host: {
+    class: 'panel timeline',
+    role: 'region',
+    'aria-label': 'Version timeline',
+    '[class.collapsed]': 'collapsed()',
+  },
   template: `
+    <div class="panel-bar">
+      <mat-icon aria-hidden="true">timeline</mat-icon>
+      <h2 class="panel-title">Version timeline</h2>
+      @if (collapsed()) {
+        <span class="panel-ticker" [class.past]="!store.atHead()" aria-live="polite">{{ where() }}</span>
+        @if (!store.atHead()) {
+          <button mat-button type="button" class="now-link" (click)="store.goLive()">
+            <mat-icon>skip_next</mat-icon>Back to now
+          </button>
+        }
+      }
+      <span class="panel-tools"><aw-panel-steps panel="timeline" name="version timeline" /></span>
+    </div>
+    @if (!collapsed()) {
+    <div class="replay">
     <button
       mat-flat-button
       type="button"
@@ -96,10 +119,22 @@ const MARK_PX = 34;
       <mat-icon>{{ store.atHead() ? 'radio_button_checked' : 'skip_next' }}</mat-icon>
       {{ store.atHead() ? 'Now' : 'Go to now' }}
     </button>
+    </div>
+    }
   `,
 })
-export class ReplayBarComponent {
+export class VersionTimelineComponent {
   protected readonly store = inject(WorkspaceStore);
+  private readonly layout = inject(PanelLayout);
+  protected readonly collapsed = computed(() => this.layout.collapsed('timeline'));
+  /** The one row: where the views are in the song's history. */
+  protected readonly where = computed(() => {
+    const v = this.store.versionLabel();
+    const ver = v ? `v${v} · ` : '';
+    return this.store.atHead()
+      ? `${ver}seq ${this.store.seq()}/${this.store.lastSeq()} · NOW`
+      : `viewing ${ver}seq ${this.store.seq()} of ${this.store.lastSeq()}`;
+  });
   private readonly scrub = viewChild<ElementRef<HTMLElement>>('scrub');
   private readonly scrubW = signal(600);
 

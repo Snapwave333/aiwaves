@@ -186,6 +186,48 @@ button {
   white-space: nowrap;
 }
 
+// a collapsed panel's one row: the latest change that belongs to it
+.panel-ticker {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--aw-faint);
+  font: var(--aw-fs-xs) var(--aw-font-mono);
+  transition:
+    color 0.3s,
+    text-shadow 0.3s;
+
+  &.fresh {
+    color: var(--aw-accent);
+    text-shadow: 0 0 8px color-mix(in srgb, var(--aw-accent) 60%, transparent);
+  }
+
+  &.past {
+    color: var(--aw-warn);
+  }
+}
+
+// collapsed: just the bar (icon, title, ticker, the open arrow)
+.panel.collapsed {
+  flex: 0 0 auto;
+
+  > .panel-bar {
+    border-bottom: 0;
+  }
+}
+
+// a collapsed panel opened for a moment to show a change: it breathes until it folds back
+.panel.peeking::before {
+  animation: aw-breathe 1.6s ease-in-out infinite;
+}
+
+.panel-steps {
+  display: inline-flex;
+  align-items: center;
+}
+
 .panel-tools {
   margin-left: auto;
   display: flex;

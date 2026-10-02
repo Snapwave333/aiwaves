@@ -1,0 +1,180 @@
+import { TestBed } from '@angular/core/testing';
+import { Animator } from '../core/animator.service';
+import { ApiService } from '../core/api.service';
+import { APP_CONFIG, readConfig } from '../core/config';
+import { LiveHandlers } from '../core/data-source';
+import { AiEvent, History, Project } from '../core/model';
+import { PEEK_MS, PanelLayout, panelOf } from '../core/panel-layout';
+import { WorkspaceStore } from '../core/workspace.store';
+import { ev, longing } from '../testing/fixtures';
+import { MixerComponent } from './mixer.component';
+import { SidePanelComponent } from './side-panel.component';
+import { VersionTimelineComponent } from './version-timeline.component';
+
+const LAST = longing().events.length;
+const IDS = ['mixer', 'devices', 'activity', 'history', 'timeline'] as const;
+
+function fakeBackend(project: Project, events: AiEvent[]) {
+  const fake = {
+    handlers: null as LiveHandlers | null,
+    current: project,
+    kind: 'live' as const,
+    health: async () => true,
+    listProjects: async () => [{ id: project.id }],
+    project: async () => structuredClone(fake.current),
+    events: async (_id: string, since: number) => events.filter((e) => e.seq > since),
+    history: async (): Promise<History> => ({ changelog: [], commits: [], branch: null }),
+    audioUrl: () => '/api/projects/longing/audio/master.wav',
+    connect: (_id: string, h: LiveHandlers) => {
+      fake.handlers = h;
+      h.status('open');
+      return () => undefined;
+    },
+  };
+  return fake;
+}
+
+describe('collapsed panels (the default): one row, open for a moment when a change lands', () => {
+  let store: WorkspaceStore;
+  let backend: ReturnType<typeof fakeBackend>;
+  let serverEvents: AiEvent[];
+  const tick = (ms = 1) => vi.advanceTimersByTimeAsync(ms);
+
+  async function push(e: AiEvent): Promise<void> {
+    serverEvents.push(e);
+    backend.handlers!.event(e);
+    await tick();
+    await tick();
+  }
+
+  beforeEach(async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    Element.prototype.scrollIntoView ??= () => undefined;
+    localStorage.setItem('aiwaves.panel.mixer', 'expanded'); // a v1 choice: ignored once
+    const { project, events } = longing();
+    serverEvents = [...events];
+    backend = fakeBackend(project, serverEvents);
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ApiService, useValue: backend },
+        { provide: APP_CONFIG, useValue: readConfig('') },
+      ],
+    });
+    store = TestBed.inject(WorkspaceStore);
+    const ready = store.init();
+    await tick(10);
+    await ready;
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    localStorage.clear();
+  });
+
+  it('every panel starts collapsed (an older saved choice does not count); arrows step one size at a time', () => {
+    const layout = TestBed.inject(PanelLayout);
+    for (const id of IDS) expect(layout.view(id)).toBe('collapsed');
+    layout.more('mixer');
+    expect(layout.view('mixer')).toBe('compact');
+    layout.more('mixer');
+    expect(layout.view('mixer')).toBe('expanded');
+    layout.more('mixer');
+    expect(layout.view('mixer')).toBe('expanded');
+    layout.less('mixer');
+    layout.less('mixer');
+    layout.less('mixer');
+    expect(layout.view('mixer')).toBe('collapsed');
+    layout.more('devices');
+    expect(new PanelLayout().view('devices')).toBe('compact');
+    expect(localStorage.getItem('aiwaves.panel.v2.devices')).toBe('compact');
+  });
+
+  it('a collapsed mixer is one row: icon, title, the latest mixer change, an Open arrow', async () => {
+    await push(ev(LAST + 1, 'mixer.set', 'tracks.drums.mixer.volume_db', -3, -9));
+    await tick(PEEK_MS + 10);
+    const f = TestBed.createComponent(MixerComponent);
+    await f.whenStable();
+    const el = f.nativeElement as HTMLElement;
+    expect(el.classList).toContain('collapsed');
+    expect(el.querySelector('.strips')).toBeNull();
+    expect(el.querySelector('.panel-title')!.textContent).toBe('Mixer');
+    expect(el.querySelector('.panel-ticker')!.textContent!.replace(/\s+/g, ' ').trim()).toBe(
+      'drums › volume_db -3 → -9',
+    );
+    expect(el.querySelector('.step-less')).toBeNull();
+    expect(el.querySelector('.step-more')!.getAttribute('aria-label')).toBe('Open the mixer');
+  });
+
+  it('a live change into a collapsed panel opens it while the knob moves, then folds it back', async () => {
+    const f = TestBed.createComponent(MixerComponent);
+    await f.whenStable();
+    const el = f.nativeElement as HTMLElement;
+    expect(el.querySelector('.strips')).toBeNull();
+
+    await push(ev(LAST + 1, 'mixer.set', 'tracks.drums.mixer.volume_db', -3, -9));
+    await f.whenStable();
+    expect(el.classList).toContain('peeking');
+    const fader = el.querySelector('[data-path="tracks.drums.mixer.volume_db"]') as HTMLElement;
+    expect(fader).not.toBeNull();
+    expect(fader.classList).toContain('glow');
+    expect(TestBed.inject(Animator).glow('tracks.drums.mixer.volume_db')).toBe(true);
+
+    // a burst keeps it open: 3 s later another change, and it stays open 4 s after that one
+    await tick(3000);
+    await push(ev(LAST + 2, 'mixer.set', 'tracks.drums.mixer.pan', 0, 0.2));
+    await tick(PEEK_MS - 500);
+    await f.whenStable();
+    expect(el.querySelector('.strips')).not.toBeNull();
+    await tick(600);
+    await f.whenStable();
+    expect(el.querySelector('.strips')).toBeNull();
+    expect(el.classList).not.toContain('peeking');
+    expect(TestBed.inject(PanelLayout).state('mixer')).toBe('collapsed');
+  });
+
+  it('opening a panel while it peeks keeps it open', async () => {
+    const layout = TestBed.inject(PanelLayout);
+    await push(ev(LAST + 1, 'mixer.set', 'tracks.drums.mixer.volume_db', -3, -9));
+    expect(layout.peeking('mixer')).toBe(true);
+    layout.more('mixer');
+    await tick(PEEK_MS + 10);
+    expect(layout.view('mixer')).toBe('compact');
+  });
+
+  it('only the panel holding the control opens', () => {
+    expect(panelOf({ verb: 'mixer.set', target: 'tracks.a.mixer.pan' })).toBe('mixer');
+    expect(panelOf({ verb: 'param.set', target: 'tracks.a.devices.eq.params.low' })).toBe('devices');
+    expect(panelOf({ verb: 'device.add', target: 'tracks.a.devices.eq' })).toBe('devices');
+    expect(panelOf({ verb: 'note', target: null })).toBeNull();
+    expect(panelOf({ verb: 'clip.add', target: 'tracks.a.clips.c1' })).toBeNull();
+  });
+
+  it('collapsed history says the latest version; collapsed timeline says where the views are', async () => {
+    store.history.set({ branch: 'main', changelog: [], commits: [] });
+    const h = TestBed.createComponent(SidePanelComponent);
+    await h.whenStable();
+    const he = h.nativeElement as HTMLElement;
+    expect(he.querySelector('mat-tab-group')).toBeNull();
+    const tag = [...store.events()].reverse().find((e) => e.verb === 'version.tag')!;
+    expect(he.querySelector('.panel-ticker')!.textContent).toBe(`v${tag.to} · ${tag.reason}`);
+
+    const t = TestBed.createComponent(VersionTimelineComponent);
+    await t.whenStable();
+    const te = t.nativeElement as HTMLElement;
+    expect(te.querySelector('.panel-title')!.textContent).toBe('Version timeline');
+    expect(te.querySelector('mat-slider')).toBeNull();
+    const row = () => te.querySelector('.panel-ticker')!.textContent!;
+    expect(row()).toMatch(new RegExp(`seq ${LAST}/${LAST} · NOW$`));
+    expect(te.querySelector('.now-link')).toBeNull();
+
+    store.seekSeq(10);
+    await tick(50);
+    await t.whenStable();
+    expect(row()).toMatch(new RegExp(`^viewing .*seq 10 of ${LAST}$`));
+    expect(te.querySelector('.panel-ticker')!.classList).toContain('past');
+    (te.querySelector('.now-link') as HTMLButtonElement).click();
+    await tick(50);
+    await t.whenStable();
+    expect(row()).toMatch(/NOW$/);
+  });
+});

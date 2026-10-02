@@ -20,7 +20,7 @@ import { ArrangementComponent } from './views/arrangement.component';
 import { CaptionOverlayComponent } from './views/caption-overlay.component';
 import { DeviceChainComponent } from './views/device-chain.component';
 import { MixerComponent } from './views/mixer.component';
-import { ReplayBarComponent } from './views/replay-bar.component';
+import { VersionTimelineComponent } from './views/version-timeline.component';
 import { SidePanelComponent } from './views/side-panel.component';
 
 @Component({
@@ -36,7 +36,7 @@ import { SidePanelComponent } from './views/side-panel.component';
     MixerComponent,
     DeviceChainComponent,
     ActivityFeedComponent,
-    ReplayBarComponent,
+    VersionTimelineComponent,
     SidePanelComponent,
     CaptionOverlayComponent,
   ],
@@ -45,7 +45,7 @@ import { SidePanelComponent } from './views/side-panel.component';
 })
 export class App {
   protected readonly store = inject(WorkspaceStore);
-  private readonly layout = inject(PanelLayout);
+  protected readonly layout = inject(PanelLayout);
   private readonly audio = inject(AudioService);
   private readonly covers = inject(CoverService);
   protected readonly sheetOpen = signal(true);
@@ -56,11 +56,11 @@ export class App {
   );
   /** Every panel in the side sheet compact: the sheet narrows and the arrangement widens. */
   protected readonly sheetCompact = computed(
-    () =>
-      this.layout.compact('activity') &&
-      this.layout.compact('changelog') &&
-      this.layout.compact('git'),
+    () => this.layout.compact('activity') && this.layout.compact('history'),
   );
+  /** Collapsed panels are one row tall: their rows shrink and the arrangement takes the room. */
+  protected readonly feedCollapsed = computed(() => this.layout.collapsed('activity'));
+  protected readonly historyCollapsed = computed(() => this.layout.collapsed('history'));
 
   constructor() {
     void this.store.init();

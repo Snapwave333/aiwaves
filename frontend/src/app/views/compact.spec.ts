@@ -36,7 +36,7 @@ function fakeBackend(project: Project, events: AiEvent[]) {
   return fake;
 }
 
-describe('compact panels (the default)', () => {
+describe('compact panels', () => {
   let store: WorkspaceStore;
   let animator: Animator;
   let backend: ReturnType<typeof fakeBackend>;
@@ -61,6 +61,9 @@ describe('compact panels (the default)', () => {
   }
 
   beforeEach(async () => {
+    // these tests are about the compact view: every panel starts there (the default is collapsed)
+    for (const id of ['mixer', 'devices', 'activity', 'history', 'timeline'])
+      localStorage.setItem(`aiwaves.panel.v2.${id}`, 'compact');
     clock = 5000;
     vi.spyOn(performance, 'now').mockImplementation(() => clock);
     // jsdom has no scrollIntoView; revealing a control calls it
@@ -84,18 +87,18 @@ describe('compact panels (the default)', () => {
     localStorage.clear();
   });
 
-  it('every panel starts compact, and each remembers its own choice', () => {
+  it('each panel remembers its own size', () => {
     const layout = TestBed.inject(PanelLayout);
-    for (const id of ['mixer', 'devices', 'activity', 'changelog', 'git'] as const)
-      expect(layout.compact(id)).toBe(true);
-    layout.toggle('mixer');
+    for (const id of ['mixer', 'devices', 'activity', 'history', 'timeline'] as const)
+      expect(layout.view(id)).toBe('compact');
+    layout.more('mixer');
     expect(layout.compact('mixer')).toBe(false);
     expect(layout.compact('devices')).toBe(true);
-    expect(localStorage.getItem('aiwaves.panel.mixer')).toBe('expanded');
+    expect(localStorage.getItem('aiwaves.panel.v2.mixer')).toBe('expanded');
     // a fresh session reads it back
     expect(new PanelLayout().compact('mixer')).toBe(false);
-    layout.toggle('mixer');
-    expect(new PanelLayout().compact('mixer')).toBe(true);
+    layout.less('mixer');
+    expect(new PanelLayout().view('mixer')).toBe('compact');
   });
 
   it('the compact mixer is one narrow strip per track: short name, mini fader, pan, M / S dots', async () => {
@@ -117,19 +120,21 @@ describe('compact panels (the default)', () => {
     expect(drums.querySelector('.dot-s[data-path="tracks.drums.mixer.solo"]')).toBeTruthy();
   });
 
-  it('the toggle in the panel bar expands the mixer to full strips and back', async () => {
+  it('the arrows in the panel bar expand the mixer to full strips and back', async () => {
     const f = TestBed.createComponent(MixerComponent);
     await f.whenStable();
     const el = f.nativeElement as HTMLElement;
-    const toggle = el.querySelector('.compact-toggle') as HTMLButtonElement;
-    expect(toggle.getAttribute('aria-label')).toBe('Expand the mixer');
-    expect(toggle.getAttribute('aria-expanded')).toBe('false');
-    toggle.click();
+    const more = el.querySelector('.step-more') as HTMLButtonElement;
+    expect(more.getAttribute('aria-label')).toBe('Expand the mixer');
+    expect(el.querySelector('.step-less')!.getAttribute('aria-label')).toBe('Collapse the mixer');
+    more.click();
     await f.whenStable();
     expect(el.querySelectorAll('.strip').length).toBe(store.project()!.tracks.length);
     expect(el.querySelector('.mini-strip')).toBeNull();
-    expect(toggle.getAttribute('aria-label')).toBe('Compact the mixer');
-    toggle.click();
+    expect(el.querySelector('.step-more')).toBeNull();
+    const less = el.querySelector('.step-less') as HTMLButtonElement;
+    expect(less.getAttribute('aria-label')).toBe('Compact the mixer');
+    less.click();
     await f.whenStable();
     expect(el.querySelector('.strip')).toBeNull();
   });
@@ -340,10 +345,10 @@ describe('compact panels (the default)', () => {
     expect(lines[0].querySelector('summary .cl-title')!.textContent).toBe('A talking bass');
     expect(lines[0].querySelector('.cl-detail')!.textContent).toContain('Surge XT bass');
     expect(el.querySelector('.cl-entry')).toBeNull();
-    expect(el.querySelector('.side-tools button')!.getAttribute('aria-label')).toBe(
-      'Expand the changelog',
+    expect(el.querySelector('.side-tools .step-more')!.getAttribute('aria-label')).toBe(
+      'Expand the history',
     );
-    TestBed.inject(PanelLayout).toggle('changelog');
+    TestBed.inject(PanelLayout).more('history');
     await f.whenStable();
     expect(el.querySelectorAll('.cl-entry').length).toBe(2);
   });

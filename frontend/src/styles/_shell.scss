@@ -214,6 +214,16 @@ app-root {
   &.sheet-compact {
     --aw-sheet-w: 296px;
   }
+
+  // both side panels folded to one row: they sit beside the player, and the arrangement and the
+  // version timeline take the full width
+  &.sheet-collapsed:not(.sheet-closed) {
+    grid-template-areas:
+      'player sheet'
+      'arr arr'
+      'replay replay'
+      'bottom bottom';
+  }
 }
 
 .area-player {
@@ -234,6 +244,20 @@ app-root {
   grid-template-rows: minmax(0, 3fr) minmax(0, 2fr);
   gap: var(--sp-2);
   min-height: 0;
+
+  // a collapsed panel is one row; the other one takes the height
+  &.feed-collapsed {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  &.history-collapsed {
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  &.feed-collapsed.history-collapsed {
+    grid-template-rows: auto auto;
+    align-content: start;
+  }
 
   &[hidden] {
     display: none;

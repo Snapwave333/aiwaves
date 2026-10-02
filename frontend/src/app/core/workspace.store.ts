@@ -1,5 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Animator } from './animator.service';
+import { PanelLayout, panelOf } from './panel-layout';
 import { ApiService } from './api.service';
 import {
   MIRRORED_VERBS,
@@ -32,6 +33,7 @@ export class WorkspaceStore {
   private readonly api = inject(ApiService);
   private readonly mock = inject(MockApiService);
   private readonly animator = inject(Animator);
+  private readonly layout = inject(PanelLayout);
 
   readonly mode = signal<'connecting' | 'live' | 'demo'>('connecting');
   readonly link = signal<LinkStatus>('connecting');
@@ -175,10 +177,13 @@ export class WorkspaceStore {
     this.selectedTrackId.set(id);
   }
 
-  /** Animates the control an event touches, selecting its track so the control is on screen. */
+  /** Animates the control an event touches, selecting its track so the control is on screen
+   * (opening its panel for a moment if it is collapsed). */
   present(event: AiEvent, direction: 1 | -1 = 1): void {
     const tid = trackIdOf(event.target);
     if (tid) this.selectedTrackId.set(tid);
+    const panel = panelOf(event);
+    if (panel) this.layout.peek(panel);
     const anim = this.animator.trigger(event, direction);
     this.revealSoon(anim.path);
   }

@@ -1,4 +1,4 @@
-// The replay bar: replay the build, step, scrub over event seq, go to now.
+// The version timeline: a panel whose body replays the build, steps, scrubs over event seq, goes to now.
 @use './mixins' as m;
 
 .replay {
@@ -6,9 +6,15 @@
   align-items: center;
   gap: var(--sp-2);
   padding: var(--sp-1) var(--sp-2);
-  @include m.chamfer(var(--aw-cut-sm));
   flex-wrap: wrap;
   min-width: 0;
+}
+
+// "Back to now" in the collapsed row
+.timeline .now-link.mat-mdc-button-base {
+  --mat-button-text-container-height: 26px;
+  font-size: var(--aw-fs-xs);
+  color: var(--aw-warn);
 }
 
 .replay-btn.mat-mdc-button-base {
