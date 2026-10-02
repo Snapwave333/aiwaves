@@ -168,8 +168,16 @@ function menu(data, origin) {
 
 // Shown while the server starts: no remote content, no scripts.
 const BOOT_SCREEN = `<!doctype html><meta charset="utf-8"><title>AIWaves</title><style>
-html,body{margin:0;height:100%;background:#07090d;color:#cfe9ff;font:600 12px/1.4 'Segoe UI',sans-serif;
-  display:grid;place-items:center;-webkit-app-region:drag;overflow:hidden}
+html,body{margin:0;height:100%;color:#cfe9ff;font:600 12px/1.4 'Segoe UI',sans-serif}
+html{background-color:#07090d;
+  background-image:radial-gradient(ellipse at center,transparent 30%,#07090dee 85%),
+    linear-gradient(27deg,#10141b 5px,transparent 5px),linear-gradient(207deg,#10141b 5px,transparent 5px),
+    linear-gradient(27deg,#141922 5px,transparent 5px),linear-gradient(207deg,#141922 5px,transparent 5px),
+    linear-gradient(90deg,#0b0e13 10px,transparent 10px),
+    linear-gradient(#0d1016 25%,#0a0d12 25%,#0a0d12 50%,transparent 50%,transparent 75%,#11151c 75%,#11151c);
+  background-position:0 0,0 5px,10px 0,0 10px,10px 5px,0 0,0 0;
+  background-size:100% 100%,20px 20px,20px 20px,20px 20px,20px 20px,20px 20px,20px 20px}
+body{display:grid;place-items:center;-webkit-app-region:drag;overflow:hidden}
 .c{display:grid;justify-items:center;gap:22px}
 .orb{width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#7ff4ff,#00e5ff 35%,#b14dff 100%);
   box-shadow:0 0 0 6px #07090d,0 0 0 8px #00e5ff55;filter:drop-shadow(0 0 18px #00e5ff);
