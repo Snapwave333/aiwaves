@@ -570,3 +570,41 @@
     transition: opacity 300ms linear;
   }
 }
+
+// --- the player as a module: its size controls, and its sizes ----------------------------------
+
+.hero-steps {
+  position: absolute;
+  top: var(--sp-1);
+  right: var(--sp-1);
+  z-index: 6;
+}
+
+.player-bar .panel-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// compact: the transport and the title; no cover, no readouts
+.module[data-id='player'][data-size='compact'] {
+  .art-block,
+  .readouts {
+    display: none;
+  }
+}
+
+// full screen: the hero fills it, the stage in the middle
+.module[data-id='player'][data-size='full'] {
+  .player,
+  .player-hero {
+    height: 100%;
+  }
+
+  .stage {
+    height: 100%;
+    align-content: center;
+    justify-content: center;
+  }
+}

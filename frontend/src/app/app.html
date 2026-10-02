@@ -1,4 +1,4 @@
-<aw-app-bar [(sheetOpen)]="sheetOpen" />
+<aw-app-bar />
 @if (store.mode() === 'demo' && !demoDismissed()) {
   <div class="banner banner-demo" role="status">
     <mat-icon aria-hidden="true">science</mat-icon>
@@ -35,39 +35,93 @@
 <main
   class="workspace"
   [class.replay-active]="!store.atHead()"
-  [class.sheet-closed]="!sheetOpen()"
-  [class.bottom-compact]="bottomCompact()"
-  [class.sheet-compact]="sheetCompact()"
-  [class.sheet-collapsed]="feedCollapsed() && historyCollapsed()"
+  [class.has-side]="layout.dockModules('side').length > 0"
+  [class.side-wide]="sideWide()"
+  [class.has-bottom]="layout.dockModules('bottom').length > 0"
+  [class.has-full]="layout.fullId() !== null"
+  [class.dragging]="dragging()"
 >
-  <aw-player class="area-player" />
-  <aw-arrangement class="area-arr" />
-  <aw-version-timeline class="area-replay" />
-  <aside
-    class="area-sheet"
-    id="aw-sheet"
-    aria-label="Activity and history"
-    [hidden]="!sheetOpen()"
-    [class.feed-collapsed]="feedCollapsed()"
-    [class.history-collapsed]="historyCollapsed()"
-  >
-    @defer (on idle) {
-      <aw-activity-feed />
-      <aw-side-panel />
-      <aw-handoff />
-    } @placeholder {
-      <div class="panel skeleton" aria-busy="true"></div>
-      <div class="panel skeleton" aria-busy="true"></div>
-    }
-  </aside>
-  <section class="area-bottom" aria-label="Mixer and devices">
-    @defer (on idle) {
-      <aw-mixer />
-      <aw-device-chain />
-    } @placeholder {
-      <div class="panel skeleton" aria-busy="true"></div>
-      <div class="panel skeleton" aria-busy="true"></div>
-    }
-  </section>
+  @for (dock of docks; track dock) {
+    <section
+      class="dock"
+      [attr.data-dock]="dock"
+      [id]="'dock-' + dock"
+      cdkDropList
+      [cdkDropListData]="dock"
+      [cdkDropListConnectedTo]="dockIds"
+      [cdkDropListOrientation]="dock === 'bottom' ? 'horizontal' : 'vertical'"
+      (cdkDropListDropped)="drop($event)"
+      [attr.aria-label]="dockNames[dock]"
+    >
+      @for (id of layout.dockModules(dock); track id) {
+        <div
+          class="module"
+          [attr.data-id]="id"
+          [attr.data-size]="layout.view(id)"
+          cdkDrag
+          [cdkDragData]="id"
+          (cdkDragStarted)="dragging.set(true)"
+          (cdkDragEnded)="dragging.set(false)"
+        >
+          <button
+            type="button"
+            class="module-grip"
+            cdkDragHandle
+            [attr.aria-label]="'Move the ' + nameOf(id) + ' (drag to reorder or to another dock)'"
+            title="Drag to move (to another dock too)"
+          >
+            <mat-icon>drag_indicator</mat-icon>
+          </button>
+          @switch (id) {
+            @case ('player') {
+              <aw-player />
+            }
+            @case ('arrangement') {
+              <aw-arrangement />
+            }
+            @case ('timeline') {
+              <aw-version-timeline />
+            }
+            @case ('mixer') {
+              @defer (on idle) {
+                <aw-mixer />
+              } @placeholder {
+                <div class="panel skeleton" aria-busy="true"></div>
+              }
+            }
+            @case ('devices') {
+              @defer (on idle) {
+                <aw-device-chain />
+              } @placeholder {
+                <div class="panel skeleton" aria-busy="true"></div>
+              }
+            }
+            @case ('activity') {
+              @defer (on idle) {
+                <aw-activity-feed />
+              } @placeholder {
+                <div class="panel skeleton" aria-busy="true"></div>
+              }
+            }
+            @case ('history') {
+              @defer (on idle) {
+                <aw-side-panel />
+              } @placeholder {
+                <div class="panel skeleton" aria-busy="true"></div>
+              }
+            }
+            @case ('handoff') {
+              @defer (on idle) {
+                <aw-handoff />
+              } @placeholder {
+                <div class="panel skeleton" aria-busy="true"></div>
+              }
+            }
+          }
+        </div>
+      }
+      <div class="dock-drop" aria-hidden="true">Drop a module here</div>
+    </section>
+  }
 </main>
 <aw-caption-overlay />

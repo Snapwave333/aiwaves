@@ -28,10 +28,12 @@ import { CoverService } from '../core/cover.service';
 import { accentFor, applyAccent } from '../core/dynamic-color';
 import { PlayerStatus } from '../core/player-state';
 import { Playhead } from '../core/playhead';
+import { PanelLayout } from '../core/panel-layout';
 import { formatClock } from '../core/time';
 import { WorkspaceStore } from '../core/workspace.store';
 import { extractDominantColor } from './extract-color';
 import { RingPainter } from './ring-painter';
+import { PanelStepsComponent } from '../ui/panel-steps.component';
 import { VisualizerComponent } from './visualizer/visualizer.component';
 
 const STATUS_TEXT: Record<PlayerStatus, string> = {
@@ -57,16 +59,38 @@ const STATUS_TEXT: Record<PlayerStatus, string> = {
     MatSliderThumb,
     MatTooltip,
     VisualizerComponent,
+    PanelStepsComponent,
   ],
   host: {
     class: 'player',
     role: 'region',
     'aria-label': 'Player',
     '[class.is-playing]': 'audio.playing()',
+    '[class.collapsed]': 'collapsed()',
   },
   template: `
     @let p = store.project();
-    <div class="player-hero">
+    @if (collapsed()) {
+      <!-- collapsed: one row (the hero stays mounted, hidden, so its canvases keep working) -->
+      <div class="panel-bar player-bar">
+        <mat-icon aria-hidden="true">play_circle</mat-icon>
+        <h2 class="panel-title">{{ p?.title ?? 'Player' }}</h2>
+        <button
+          mat-icon-button
+          type="button"
+          class="icon-btn-sm"
+          (click)="audio.toggle()"
+          [disabled]="audio.status() === 'idle'"
+          [attr.aria-label]="audio.playing() ? 'Pause' : 'Play'"
+        >
+          <mat-icon>{{ audio.playing() ? 'pause' : 'play_arrow' }}</mat-icon>
+        </button>
+        <span class="panel-ticker">{{ clock() }} / {{ totalText() }}</span>
+        <span class="panel-tools"><aw-panel-steps panel="player" name="player" /></span>
+      </div>
+    }
+    <div class="player-hero" [class.is-hidden]="collapsed()">
+      <aw-panel-steps class="hero-steps" panel="player" name="player" />
       @if (backdrop(); as bd) {
         <div class="backdrop" aria-hidden="true" [style.background-image]="cssUrl(bd)"></div>
       }
@@ -277,6 +301,8 @@ const STATUS_TEXT: Record<PlayerStatus, string> = {
   `,
 })
 export class PlayerComponent {
+  private readonly layout = inject(PanelLayout);
+  protected readonly collapsed = computed(() => this.layout.collapsed('player'));
   protected readonly audio = inject(AudioService);
   protected readonly store = inject(WorkspaceStore);
   protected readonly animator = inject(Animator);

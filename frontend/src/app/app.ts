@@ -7,11 +7,12 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { AudioService } from './core/audio.service';
 import { CoverService } from './core/cover.service';
-import { PanelLayout } from './core/panel-layout';
+import { DOCKS, Dock, MODULES, ModuleId, PanelLayout } from './core/panel-layout';
 import { WorkspaceStore } from './core/workspace.store';
 import { PlayerComponent } from './player/player.component';
 import { AppBarComponent } from './shell/app-bar.component';
@@ -28,6 +29,9 @@ import { SidePanelComponent } from './views/side-panel.component';
   selector: 'app-root',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    CdkDropList,
+    CdkDrag,
+    CdkDragHandle,
     MatButton,
     MatIconButton,
     MatIcon,
@@ -50,19 +54,20 @@ export class App {
   protected readonly layout = inject(PanelLayout);
   private readonly audio = inject(AudioService);
   private readonly covers = inject(CoverService);
-  protected readonly sheetOpen = signal(true);
   protected readonly demoDismissed = signal(false);
-  /** Compact mixer and devices: the bottom row shrinks to fit them and the arrangement grows. */
-  protected readonly bottomCompact = computed(
-    () => this.layout.compact('mixer') && this.layout.compact('devices'),
+  protected readonly docks = DOCKS;
+  protected readonly dockIds = DOCKS.map((d) => 'dock-' + d);
+  protected readonly dockNames: Record<Dock, string> = {
+    main: 'Main dock',
+    side: 'Side dock',
+    bottom: 'Bottom dock',
+  };
+  /** A module is being dragged: empty docks show where it can go. */
+  protected readonly dragging = signal(false);
+  /** An expanded module in the side dock widens it. */
+  protected readonly sideWide = computed(() =>
+    this.layout.dockModules('side').some((id) => this.layout.view(id) === 'expanded'),
   );
-  /** Every panel in the side sheet compact: the sheet narrows and the arrangement widens. */
-  protected readonly sheetCompact = computed(
-    () => this.layout.compact('activity') && this.layout.compact('history'),
-  );
-  /** Collapsed panels are one row tall: their rows shrink and the arrangement takes the room. */
-  protected readonly feedCollapsed = computed(() => this.layout.collapsed('activity'));
-  protected readonly historyCollapsed = computed(() => this.layout.collapsed('history'));
 
   constructor() {
     void this.store.init();
@@ -88,6 +93,15 @@ export class App {
     });
   }
 
+  protected nameOf(id: ModuleId): string {
+    return MODULES.find((m) => m.id === id)?.name.toLowerCase() ?? id;
+  }
+
+  /** A module dropped in a dock (the same one: reordered). */
+  protected drop(e: CdkDragDrop<Dock>): void {
+    this.layout.move(e.item.data as ModuleId, e.container.data, e.currentIndex);
+  }
+
   /** Space: play / pause. M: mute. Left / right: step one event (with Shift: one version).
    * Home / End: the start of the history / now. */
   protected onKey(e: KeyboardEvent): void {
@@ -100,6 +114,12 @@ export class App {
       el?.isContentEditable ||
       (tag === 'INPUT' && (el as HTMLInputElement).type !== 'range');
     if (typing) return;
+    const full = this.layout.fullId();
+    if (e.key === 'Escape' && full) {
+      e.preventDefault();
+      this.layout.less(full);
+      return;
+    }
     if (e.code === 'Space') {
       e.preventDefault();
       this.audio.toggle();

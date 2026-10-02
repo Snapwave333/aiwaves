@@ -5,7 +5,6 @@ import {
   computed,
   effect,
   inject,
-  model,
   untracked,
   viewChild,
 } from '@angular/core';
@@ -15,6 +14,7 @@ import { MatProgressBar } from '@angular/material/progress-bar';
 import { MatTooltip } from '@angular/material/tooltip';
 import { Animator, reducedMotion } from '../core/animator.service';
 import { WorkspaceStore } from '../core/workspace.store';
+import { LayoutMenusComponent } from './layout-menus.component';
 
 const LINK_TEXT: Record<string, string> = {
   open: 'LIVE',
@@ -37,7 +37,7 @@ const LINK_HINT: Record<string, string> = {
 @Component({
   selector: 'aw-app-bar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatIconButton, MatIcon, MatProgressBar, MatTooltip],
+  imports: [MatIconButton, MatIcon, MatProgressBar, MatTooltip, LayoutMenusComponent],
   host: { class: 'app-bar', role: 'banner' },
   template: `
     @let p = store.project();
@@ -77,18 +77,11 @@ const LINK_HINT: Record<string, string> = {
         <mat-icon>sync</mat-icon>
       </button>
     }
-    <button
-      mat-icon-button
-      type="button"
-      class="icon-btn-sm"
-      (click)="sheetOpen.set(!sheetOpen())"
-      [attr.aria-expanded]="sheetOpen()"
-      aria-controls="aw-sheet"
-      [attr.aria-label]="sheetOpen() ? 'Hide activity and history' : 'Show activity and history'"
-      [matTooltip]="sheetOpen() ? 'Hide activity and history' : 'Show activity and history'"
-    >
-      <mat-icon>{{ sheetOpen() ? 'right_panel_close' : 'right_panel_open' }}</mat-icon>
-    </button>
+    @defer (on idle) {
+      <aw-layout-menus />
+    } @placeholder {
+      <span class="nav-placeholder" aria-hidden="true"></span>
+    }
     <div class="light-bar" aria-hidden="true">
       @if (store.mode() === 'connecting') {
         <mat-progress-bar mode="indeterminate" />
@@ -103,8 +96,6 @@ export class AppBarComponent {
   private readonly animator = inject(Animator);
   private readonly sweep = viewChild<ElementRef<HTMLElement>>('sweep');
 
-  /** Whether the activity / history side sheet is shown. */
-  readonly sheetOpen = model(true);
 
   protected readonly linkText = computed(() => LINK_TEXT[this.store.link()] ?? 'CONNECTING');
   protected readonly linkHint = computed(() => LINK_HINT[this.store.link()] ?? '');

@@ -53,7 +53,7 @@ describe('collapsed panels (the default): one row, open for a moment when a chan
   beforeEach(async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     Element.prototype.scrollIntoView ??= () => undefined;
-    localStorage.setItem('aiwaves.panel.mixer', 'expanded'); // a v1 choice: ignored once
+    localStorage.setItem('aiwaves.panel.v2.mixer', 'expanded'); // an older choice: the new default wins
     const { project, events } = longing();
     serverEvents = [...events];
     backend = fakeBackend(project, serverEvents);
@@ -82,14 +82,13 @@ describe('collapsed panels (the default): one row, open for a moment when a chan
     layout.more('mixer');
     expect(layout.view('mixer')).toBe('expanded');
     layout.more('mixer');
-    expect(layout.view('mixer')).toBe('expanded');
-    layout.less('mixer');
-    layout.less('mixer');
-    layout.less('mixer');
+    expect(layout.view('mixer')).toBe('full');
+    layout.more('mixer');
+    expect(layout.view('mixer')).toBe('full');
+    for (let i = 0; i < 4; i++) layout.less('mixer');
     expect(layout.view('mixer')).toBe('collapsed');
     layout.more('devices');
     expect(new PanelLayout().view('devices')).toBe('compact');
-    expect(localStorage.getItem('aiwaves.panel.v2.devices')).toBe('compact');
   });
 
   it('a collapsed mixer is one row: icon, title, the latest mixer change, an Open arrow', async () => {

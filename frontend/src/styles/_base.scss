@@ -168,6 +168,8 @@ button {
 
 .panel-title {
   margin: 0;
+  flex: none;
+  white-space: nowrap;
   font: 600 var(--aw-fs-xs) / 1 var(--aw-font-display);
   letter-spacing: var(--aw-track-wide);
   text-transform: uppercase;
@@ -209,10 +211,9 @@ button {
   }
 }
 
-// collapsed: just the bar (icon, title, ticker, the open arrow), never stretched by its row
+// collapsed: just the bar (icon, title, ticker, the open arrow)
 .panel.collapsed {
   flex: 0 0 auto;
-  align-self: start;
 
   > .panel-bar {
     border-bottom: 0;

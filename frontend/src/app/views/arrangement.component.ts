@@ -41,6 +41,8 @@ import { ClipComponent } from './clip.component';
 import { LaneCanvasDirective } from './lane-canvas.directive';
 import { MeterDirective, PlayheadDirective } from '../ui/live-style.directives';
 import { Playhead } from '../core/playhead';
+import { PanelLayout } from '../core/panel-layout';
+import { PanelStepsComponent } from '../ui/panel-steps.component';
 
 const HEAD_W = 188;
 const RULER_H = 26;
@@ -60,8 +62,14 @@ const SECTION_COLORS = ['#00e5ff', '#b14dff', '#ff2bd6', '#3dffa2', '#ffc24d', '
     MatTooltip,
     MeterDirective,
     PlayheadDirective,
+    PanelStepsComponent,
   ],
-  host: { class: 'panel arrangement', role: 'region', 'aria-label': 'Arrangement' },
+  host: {
+    class: 'panel arrangement',
+    role: 'region',
+    'aria-label': 'Arrangement',
+    '[class.collapsed]': 'collapsed()',
+  },
   template: `
     <div class="panel-bar">
       <mat-icon aria-hidden="true">view_timeline</mat-icon>
@@ -98,10 +106,11 @@ const SECTION_COLORS = ['#00e5ff', '#b14dff', '#ff2bd6', '#3dffa2', '#ffc24d', '
         >
           <mat-icon>fit_screen</mat-icon>
         </button>
+        <aw-panel-steps panel="arrangement" name="arrangement" />
       </div>
     </div>
     @let p = store.project();
-    <div class="arr-scroll" #scroller (wheel)="onWheel($event)">
+    <div class="arr-scroll" #scroller (wheel)="onWheel($event)" [class.is-hidden]="collapsed()">
       @if (p) {
         <div
           class="arr-grid"
@@ -295,6 +304,8 @@ const SECTION_COLORS = ['#00e5ff', '#b14dff', '#ff2bd6', '#3dffa2', '#ffc24d', '
   `,
 })
 export class ArrangementComponent {
+  private readonly layout = inject(PanelLayout);
+  protected readonly collapsed = computed(() => this.layout.collapsed('arrangement'));
   protected readonly store = inject(WorkspaceStore);
   protected readonly animator = inject(Animator);
   private readonly audio = inject(AudioService);

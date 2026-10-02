@@ -62,9 +62,6 @@ describe('compact panels', () => {
   }
 
   beforeEach(async () => {
-    // these tests are about the compact view: every panel starts there (the default is collapsed)
-    for (const id of ['mixer', 'devices', 'activity', 'history', 'timeline'])
-      localStorage.setItem(`aiwaves.panel.v2.${id}`, 'compact');
     clock = 5000;
     vi.spyOn(performance, 'now').mockImplementation(() => clock);
     // jsdom has no scrollIntoView; revealing a control calls it
@@ -80,6 +77,10 @@ describe('compact panels', () => {
     });
     store = TestBed.inject(WorkspaceStore);
     animator = TestBed.inject(Animator);
+    // these tests are about the compact view: every panel starts there (the default is collapsed)
+    const layout = TestBed.inject(PanelLayout);
+    for (const id of ['mixer', 'devices', 'activity', 'history', 'timeline'] as const)
+      layout.setSize(id, 'compact');
     await store.init();
   });
 
@@ -95,8 +96,7 @@ describe('compact panels', () => {
     layout.more('mixer');
     expect(layout.compact('mixer')).toBe(false);
     expect(layout.compact('devices')).toBe(true);
-    expect(localStorage.getItem('aiwaves.panel.v2.mixer')).toBe('expanded');
-    // a fresh session reads it back
+    // saved at once; a fresh session reads it back
     expect(new PanelLayout().compact('mixer')).toBe(false);
     layout.less('mixer');
     expect(new PanelLayout().view('mixer')).toBe('compact');
@@ -132,7 +132,8 @@ describe('compact panels', () => {
     await f.whenStable();
     expect(el.querySelectorAll('.strip').length).toBe(store.project()!.tracks.length);
     expect(el.querySelector('.mini-strip')).toBeNull();
-    expect(el.querySelector('.step-more')).toBeNull();
+    // expanded: the next step is full screen
+    expect(el.querySelector('.step-more')!.getAttribute('aria-label')).toBe('Full screen: mixer');
     const less = el.querySelector('.step-less') as HTMLButtonElement;
     expect(less.getAttribute('aria-label')).toBe('Compact the mixer');
     less.click();

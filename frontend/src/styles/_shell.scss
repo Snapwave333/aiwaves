@@ -1,5 +1,5 @@
-// The app shell: top app bar (the title bar in the desktop app), the workspace grid, the side
-// sheet and the responsive stacking.
+// The app shell: top app bar (the title bar in the desktop app), the workspace's three docks of
+// sized, draggable modules, full screen, and the responsive stacking.
 @use './mixins' as m;
 
 app-root {
@@ -179,7 +179,7 @@ app-root {
   }
 }
 
-// --- workspace grid ---------------------------------------------------------------------------------
+// --- workspace: three docks (main column, right side, bottom row) -------------------------------
 
 .workspace {
   flex: 1;
@@ -187,96 +187,218 @@ app-root {
   display: grid;
   gap: var(--sp-2);
   padding: var(--sp-2);
-  grid-template-columns: minmax(0, 1fr) var(--aw-sheet-w);
-  grid-template-rows: auto minmax(160px, 1fr) auto clamp(212px, 28vh, 340px);
+  grid-template-columns: minmax(0, 1fr) 0;
+  grid-template-rows: minmax(0, 1fr) auto;
   grid-template-areas:
-    'player sheet'
-    'arr sheet'
-    'replay sheet'
+    'main side'
     'bottom bottom';
 
-  &.sheet-closed {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'player'
-      'arr'
-      'replay'
-      'bottom';
+  &.has-side,
+  &.dragging {
+    grid-template-columns: minmax(0, 1fr) var(--aw-sheet-w);
   }
 
-  // compact mixer and devices: the bottom row is as tall as they are; the arrangement takes the rest
-  &.bottom-compact {
-    grid-template-rows: auto minmax(160px, 1fr) auto auto;
-  }
-
-  // a compact side sheet fits in less width; the arrangement gets it
-  &.sheet-compact {
-    --aw-sheet-w: 296px;
-  }
-
-  // both side panels folded to one row: they sit beside the player, and the arrangement and the
-  // version timeline take the full width
-  &.sheet-collapsed:not(.sheet-closed) {
-    grid-template-areas:
-      'player sheet'
-      'arr arr'
-      'replay replay'
-      'bottom bottom';
+  // an expanded module on the side gets more room
+  &.side-wide {
+    --aw-sheet-w: 420px;
   }
 }
 
-.area-player {
-  grid-area: player;
-}
-
-.area-arr {
-  grid-area: arr;
-}
-
-.area-replay {
-  grid-area: replay;
-}
-
-.area-sheet {
-  grid-area: sheet;
-  display: grid;
-  grid-template-rows: minmax(0, 3fr) minmax(0, 2fr);
+.dock {
+  display: flex;
   gap: var(--sp-2);
+  min-width: 0;
   min-height: 0;
 
-  // a collapsed panel is one row; the other one takes the height
-  &.feed-collapsed {
-    grid-template-rows: auto minmax(0, 1fr);
+  &[data-dock='main'] {
+    grid-area: main;
+    flex-direction: column;
+    overflow: auto;
   }
 
-  &.history-collapsed {
-    grid-template-rows: minmax(0, 1fr) auto;
+  &[data-dock='side'] {
+    grid-area: side;
+    flex-direction: column;
+    overflow: auto;
   }
 
-  &.feed-collapsed.history-collapsed {
-    grid-template-rows: auto auto;
-    align-content: start;
-  }
-
-  &[hidden] {
-    display: none;
+  &[data-dock='bottom'] {
+    grid-area: bottom;
+    flex-direction: row;
+    align-items: stretch;
+    max-height: 46vh;
+    overflow: auto;
   }
 }
 
-.area-bottom {
-  grid-area: bottom;
+// where a dragged module can land: shown only while dragging, and only in docks without modules
+.dock-drop {
+  display: none;
+}
+
+.workspace.dragging .dock:not(:has(.module:not(.cdk-drag-placeholder))) .dock-drop {
   display: grid;
-  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
-  gap: var(--sp-2);
+  place-items: center;
+  flex: 1;
+  min-height: 56px;
+  min-width: 160px;
+  border: 1px dashed color-mix(in srgb, var(--aw-accent) 55%, transparent);
+  color: var(--aw-faint);
+  font: var(--aw-fs-xs) var(--aw-font-mono);
+}
+
+// --- modules and their sizes --------------------------------------------------------------------
+
+.module {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
   min-height: 0;
 
-  > .mixer {
-    max-width: 55vw;
+  > :not(.module-grip) {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  &[data-size='collapsed'] {
+    flex: 0 0 auto;
+  }
+
+  &[data-size='compact'] {
+    flex: 0 1 auto;
+    max-height: 48vh;
+  }
+
+  &[data-size='expanded'] {
+    flex: 1 1 0;
+    min-height: 180px;
+  }
+
+  // the player is as tall as its content (it never stretches)
+  &[data-id='player']:not([data-size='full']) {
+    flex: 0 0 auto;
+    max-height: none;
+    min-height: 0;
+  }
+
+  // the arrangement, compact: a shorter window onto the same lanes
+  &[data-id='arrangement'][data-size='compact'] {
+    flex: 0 0 300px;
+  }
+
+  // full screen: the whole workspace under the app bar
+  &[data-size='full'] {
+    position: fixed;
+    inset: calc(var(--aw-appbar-h) + var(--sp-2)) var(--sp-2) var(--sp-2);
+    z-index: 40;
+    max-height: none;
   }
 }
 
-.workspace.replay-active .area-replay {
+.dock[data-dock='bottom'] .module {
+  flex: 1 1 0;
+  min-width: 280px;
+
+  &[data-size='collapsed'] {
+    flex: 0 0 auto;
+    min-width: 220px;
+    align-self: flex-start;
+  }
+}
+
+// behind a full-screen module, the rest of the workspace dims away
+.workspace.has-full::after {
+  content: '';
+  position: fixed;
+  inset: var(--aw-appbar-h) 0 0;
+  z-index: 39;
+  background: color-mix(in srgb, var(--aw-space) 88%, transparent);
+}
+
+// the grip: drag a module by it to reorder it or move it to another dock
+.module-grip {
+  position: absolute;
+  z-index: 9;
+  top: 7px;
+  left: 1px;
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--aw-faint);
+  opacity: 0.45;
+  cursor: grab;
+
+  .mat-icon {
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+  }
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+    color: var(--aw-accent);
+  }
+}
+
+.cdk-drag-preview {
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.55), 0 0 0 1px var(--aw-accent);
+  opacity: 0.92;
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.25;
+  outline: 1px dashed var(--aw-accent);
+}
+
+.cdk-drag-animating,
+.cdk-drop-list-dragging .module:not(.cdk-drag-placeholder) {
+  transition: transform 220ms var(--aw-ease);
+}
+
+.module[data-size='full'] .module-grip {
+  display: none;
+}
+
+// hidden, not destroyed (canvases and observers survive a collapse)
+.is-hidden {
+  display: none !important;
+}
+
+.workspace.replay-active .module[data-id='timeline'] > .panel {
   @include m.chamfer(var(--aw-cut-sm), var(--aw-accent));
+}
+
+// the Save layout dialog
+.dialog-field {
+  display: grid;
+  gap: var(--sp-1);
+  font: var(--aw-fs-xs) var(--aw-font-mono);
+  color: var(--aw-dim);
+
+  input {
+    min-width: 280px;
+    padding: var(--sp-2);
+    border: 1px solid var(--aw-line);
+    background: var(--aw-well);
+    color: var(--aw-text);
+    font: var(--aw-fs-sm) var(--aw-font-body);
+
+    &:focus {
+      outline: 1px solid var(--aw-accent);
+    }
+  }
+}
+
+.dialog-note {
+  margin: var(--sp-2) 0 0;
+  color: var(--aw-warn);
+  font-size: var(--aw-fs-xs);
 }
 
 @media (max-width: 1000px) {
@@ -289,40 +411,19 @@ app-root {
     display: none;
   }
 
-  .workspace,
-  .workspace.sheet-closed {
+  // narrow: the docks stack, one after another
+  .workspace {
     display: flex;
     flex-direction: column;
   }
 
-  .area-arr {
-    height: 440px;
-  }
-
-  .area-sheet {
-    grid-template-rows: 380px 320px;
-  }
-
-  .area-bottom {
-    display: flex;
+  .dock[data-dock='bottom'] {
     flex-direction: column;
+    max-height: none;
+  }
 
-    > .mixer {
-      max-width: none;
-      height: 300px;
-    }
-
-    > .devices {
-      min-height: 230px;
-    }
-
-    > .mixer.compact {
-      height: auto;
-    }
-
-    > .devices.compact {
-      min-height: 0;
-    }
+  .module[data-id='arrangement'][data-size='expanded'] {
+    flex: 0 0 440px;
   }
 }
 
@@ -330,4 +431,15 @@ app-root {
   .status-chip.status-open .status-dot {
     animation: none;
   }
+}
+
+// the Modules / Layouts menus (loaded after first paint): their room is kept meanwhile
+.layout-menus {
+  display: inline-flex;
+  align-items: center;
+}
+
+.nav-placeholder {
+  display: inline-block;
+  width: 60px;
 }
