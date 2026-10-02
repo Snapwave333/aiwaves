@@ -12,7 +12,7 @@ import {
   computeOrbPlacements,
   orbHue,
 } from './orb-choreography';
-import { VisualizerComponent } from './visualizer.component';
+import { IDLE_SPEED, VisualizerComponent } from './visualizer.component';
 
 describe('computeDrawingBufferSize', () => {
   const BUDGET = 1_600_000;
@@ -159,16 +159,6 @@ describe('VisualizerComponent', () => {
   const renders = () => renderer.render.mock.calls.length;
   const lastFrame = () => renderer.render.mock.calls.at(-1)![0] as MetaballFrame;
 
-  /** Pumps until the visualizer stops drawing; returns how many frames it took. */
-  function pumpUntilQuiet(limit = 2000): number {
-    for (let n = 1; n <= limit; n++) {
-      const before = renders();
-      pump();
-      if (renders() === before) return n;
-    }
-    throw new Error('the visualizer never stopped drawing');
-  }
-
   async function mount(): Promise<ComponentFixture<VisualizerComponent>> {
     const f = TestBed.createComponent(VisualizerComponent);
     await f.whenStable();
@@ -202,35 +192,50 @@ describe('VisualizerComponent', () => {
     vi.restoreAllMocks();
   });
 
-  it('paints one resting frame, then waits for the music', async () => {
+  it('paused, it drifts: 3 % of the speed, at most 20 frames a second, never stopping', async () => {
     const f = await mount();
     expect(create).toHaveBeenCalledTimes(1);
-    expect(renders()).toBe(1);
     expect(lastFrame().energy.level).toBeCloseTo(IDLE_LEVEL);
-    pump();
-    pump();
-    expect(renders()).toBe(1);
+    const before = renders();
+    const t0 = lastFrame().time;
+    for (let i = 0; i < 120; i++) pump(); // 2 s at 60 Hz
+    const drawn = renders() - before;
+    expect(drawn).toBeGreaterThanOrEqual(36); // ~20 a second
+    expect(drawn).toBeLessThanOrEqual(42);
+    expect(lastFrame().time - t0).toBeCloseTo(2 * IDLE_SPEED, 2);
+    expect(lastFrame().energy.pulse).toBe(0);
+    expect(scheduled.size).toBe(1); // still running
     expect(f.nativeElement.classList).not.toContain('off');
   });
 
-  it('animates while the song plays, driven by its spectrum, and parks after a pause', async () => {
+  it('plays at full speed driven by its spectrum, easing up on play and down to the drift on pause', async () => {
     await mount();
     audio.playing.set(true);
     TestBed.tick();
-    for (let i = 0; i < 90; i++) pump();
-    expect(renders()).toBeGreaterThanOrEqual(90);
+    // eased: the first frames move slowly, not at once at full speed
+    pump();
+    pump();
+    const early = lastFrame().time;
+    for (let i = 0; i < 180; i++) pump(); // 3 s
+    expect(renders()).toBeGreaterThanOrEqual(180);
     const playing = lastFrame();
+    expect(early).toBeLessThan(2 / 60);
     expect(playing.energy.level).toBeGreaterThan(IDLE_LEVEL + 0.1);
     expect(playing.trails).toBe(true);
-    expect(playing.time).toBeGreaterThan(1.4);
+    // after the ease, a second of music is about a second of motion
+    const t1 = lastFrame().time;
+    for (let i = 0; i < 60; i++) pump();
+    expect(lastFrame().time - t1).toBeGreaterThan(0.95);
 
     audio.playing.set(false);
     TestBed.tick();
-    const frames = pumpUntilQuiet();
-    // it settles (the orbs ease back to rest) instead of freezing mid-swell, then stops
-    expect(frames).toBeGreaterThan(30);
-    expect(frames / 60).toBeLessThan(5);
-    expect(scheduled.size).toBe(0);
+    for (let i = 0; i < 300; i++) pump(); // 5 s: eased down and settled
+    const t2 = lastFrame().time;
+    const n = renders();
+    for (let i = 0; i < 60; i++) pump();
+    expect(lastFrame().time - t2).toBeCloseTo(IDLE_SPEED, 2);
+    expect(renders() - n).toBeLessThanOrEqual(21);
+    expect(scheduled.size).toBe(1);
   });
 
   it('stops while the page is hidden and resumes when it is shown again', async () => {
@@ -273,13 +278,15 @@ describe('VisualizerComponent', () => {
     const f = lastFrame();
     expect(f.trails).toBe(false);
     expect(f.energy.pulse).toBe(0);
-    expect(f.time).toBeCloseTo(0.2, 5);
+    // a fifth of the speed (eased in from the drift)
+    expect(f.time).toBeGreaterThan(0.1);
+    expect(f.time).toBeLessThan(0.2);
     // it still follows the song, slowly
     expect(f.energy.level).toBeGreaterThan(IDLE_LEVEL);
     audio.playing.set(false);
     TestBed.tick();
-    pumpUntilQuiet();
-    expect(scheduled.size).toBe(0);
+    for (let i = 0; i < 300; i++) pump();
+    expect(scheduled.size).toBe(1); // paused it keeps drifting
   });
 
   it('hides itself when the GL context is lost, and comes back when it is restored', async () => {
@@ -314,7 +321,7 @@ describe('VisualizerComponent', () => {
     expect(f.nativeElement.classList).toContain('off');
   });
 
-  it('repaints a parked canvas at its new size when it is resized', async () => {
+  it('repaints at once at its new size when it is resized', async () => {
     const observed: { cb?: ResizeObserverCallback } = {};
     vi.stubGlobal(
       'ResizeObserver',

@@ -2,7 +2,8 @@
 // (libs/portal/radio/feature/src/lib/radio-visualizer/radio-visualizer.component.ts; MIT, see
 // THIRD_PARTY_NOTICES.md). AIWaves changes: driven by the song's real spectrum (the app's one
 // AnalyserNode) instead of a synthesised one; coloured from the AlienFX palette and the cover
-// art's accent; stops when the page or the player is hidden; recovers from a lost GL context.
+// art's accent; paused, it drifts at 3 % speed (at most 20 frames a second) instead of stopping;
+// stops only when the page or the player is hidden; recovers from a lost GL context.
 import {
   ChangeDetectionStrategy,
   Component,
@@ -33,6 +34,12 @@ const ACCENT_EVERY_FRAMES = 8;
  * speed, follow the music only through slow swells (no beat pulse, no darting), and leave no trails.
  */
 const REDUCED_SPEED = 0.2;
+/** Paused: time runs at 3 % of normal, an ambient drift (the orbs keep slowly fusing). */
+export const IDLE_SPEED = 0.03;
+/** Time constant of the speed change between playing and paused (about 1.5 s to settle). */
+const EASE_SECONDS = 0.5;
+/** Paused, at most 20 frames a second: it runs while the app sits open. */
+export const IDLE_FRAME_S = 1 / 20;
 const REDUCED_SMOOTHING_SECONDS = 0.8;
 const CYAN = '#00e5ff';
 
@@ -71,6 +78,8 @@ export class VisualizerComponent {
   private raf = 0;
   private lastAt = 0;
   private time = 0;
+  /** How fast time runs now: eases toward 1 while playing and IDLE_SPEED while paused. */
+  private timeScale = IDLE_SPEED;
   private swayPhase = Math.random();
   private accentHue = 0;
   private rim: [number, number, number] = [0, 0.9, 1];
@@ -111,8 +120,8 @@ export class VisualizerComponent {
       if (typeof ResizeObserver === 'function') {
         resizeObserver = new ResizeObserver(([entry]) => {
           this.renderer?.setSize(entry.contentRect.width, entry.contentRect.height);
-          // the loop resizes on its next frame; a parked canvas would stay stretched, so repaint
-          if (!this.raf) this.paint();
+          // repaint at once: drifting, the next frame can be 50 ms away (or none, when hidden)
+          this.paint();
         });
         resizeObserver.observe(canvas);
       }
@@ -127,7 +136,7 @@ export class VisualizerComponent {
       this.attach(canvas);
     });
 
-    // playing is what wakes the loop; once it settles after a pause it parks itself
+    // play and pause change its speed (the loop runs whenever it is on screen)
     effect(() => {
       this.audio.playing();
       untracked(() => this.wake());
@@ -156,10 +165,9 @@ export class VisualizerComponent {
     return this.onScreen && !(typeof document !== 'undefined' && document.hidden);
   }
 
-  /** Starts the frame loop if there is anything to animate. */
+  /** Starts the frame loop (it always has something to do: paused, it drifts). */
   private wake(): void {
     if (!this.renderer || this.raf || !this.visible) return;
-    if (!this.audio.playing() && this.energy.envelope < SETTLED) return;
     this.lastAt = performance.now() / 1000;
     this.raf = requestAnimationFrame(() => this.tick());
   }
@@ -173,13 +181,22 @@ export class VisualizerComponent {
     this.raf = 0;
     if (!this.renderer) return;
     const now = performance.now() / 1000;
+    const playing = this.audio.playing();
+    // paused and settled: a slow drift needs no more than IDLE_FRAME_S per frame
+    const drifting =
+      !playing && this.energy.envelope < SETTLED && this.timeScale < IDLE_SPEED * 1.1;
+    if (drifting && now - this.lastAt < IDLE_FRAME_S - 1e-4) {
+      if (this.visible) this.raf = requestAnimationFrame(() => this.tick());
+      return;
+    }
     // clamped so a stall doesn't resume with a jump
     const dt = Math.min(Math.max(0, now - this.lastAt), 0.1);
     this.lastAt = now;
-    const speed = this.reduced ? REDUCED_SPEED : 1;
+    const target = playing ? (this.reduced ? REDUCED_SPEED : 1) : IDLE_SPEED;
+    this.timeScale += (target - this.timeScale) * (1 - Math.exp(-dt / EASE_SECONDS));
+    const speed = this.timeScale;
     this.time += dt * speed;
 
-    const playing = this.audio.playing();
     const measured = this.energy.step(playing ? this.measure() : null, playing, dt);
     const energy = this.reduced ? this.calm(measured, dt) : measured;
     this.swayPhase += dt * speed * (SWAY_RATE + energy.level * SWAY_RATE_GAIN);
@@ -187,7 +204,6 @@ export class VisualizerComponent {
     if (this.frames++ % ACCENT_EVERY_FRAMES === 0) this.readAccent();
     this.renderer.render(this.frame(energy, true));
 
-    if (!playing && this.energy.envelope < SETTLED) return;
     if (this.visible) this.raf = requestAnimationFrame(() => this.tick());
   }
 
