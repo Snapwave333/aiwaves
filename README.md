@@ -16,8 +16,12 @@ turns turns on screen, with the reason it gave and the measurement behind it.
   player for an A/B against the current mix.
 - **Full arrangement.** Ableton-like lanes with every placed vocal piece (with its own waveform),
   MIDI clips drawn as a piano roll, drum lanes, sections and chords.
-- **Collapsible panels.** Mixer, devices, activity, history, timeline and the handoff document fold
-  to one row; a change landing in a folded panel opens it just long enough to show the move.
+- **A workstation layout.** Every module (player, arrangement, version timeline, mixer, devices,
+  activity, history, handoff) sits in a dock (main, side, bottom); drag it by its grip to rearrange,
+  size it collapsed → compact → expanded → full screen, open and close it from the top bar. Preset
+  views (Default, Studio, Watch the agent, Mixing, Listening), saved layouts, reset to default; the
+  layout comes back on relaunch. A change landing in a folded panel opens it just long enough to
+  show the move.
 - **aiwave411.md.** Each project carries an agent handoff document (like a `CLAUDE.md`): what the
   project is, how it's made, the rules, what was measured, what's next. Agents read it first and
   keep it current; it updates live in the workspace.
