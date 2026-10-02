@@ -43,7 +43,7 @@ const LINK_HINT: Record<string, string> = {
     @let p = store.project();
     <div class="brand" aria-label="AIWaves">
       <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
-        <path class="logo-hex" d="M9 3h14l7 13-7 13H9L2 16z" />
+        <circle class="logo-ring" cx="16" cy="16" r="13" />
         <path class="logo-wave" d="M7 17c2.5 0 2.5-6 5-6s2.5 10 5 10 2.5-8 5-8 2 4 3 4" />
       </svg>
       <span class="brand-name">AIWaves</span>
@@ -63,7 +63,7 @@ const LINK_HINT: Record<string, string> = {
       [attr.aria-label]="'Connection: ' + linkText()"
       [matTooltip]="linkHint()"
     >
-      <span class="status-hex" aria-hidden="true"></span>{{ linkText() }}
+      <span class="status-dot" aria-hidden="true"></span>{{ linkText() }}
     </span>
     @if (store.mode() === 'demo') {
       <button

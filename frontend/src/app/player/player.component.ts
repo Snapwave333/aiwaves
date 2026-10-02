@@ -2,7 +2,7 @@
 // MIT licence: see THIRD_PARTY_NOTICES.md) and re-themed for AIWaves. Changes from the original:
 // no NgRx store, ngx-translate or channel switching; no audio element of its own (it drives the
 // app's one AudioService); the song's readouts (bar.beat, BPM, key, section, chord, version)
-// live here; the cover art, its dominant colour and a hexagonal spectrum ring are new. The GLSL
+// live here; the cover art, its dominant colour and a round spectrum ring are new. The GLSL
 // visualizer behind it comes from CarbonCast's radio player (see visualizer/).
 import {
   ChangeDetectionStrategy,
@@ -86,7 +86,7 @@ const STATUS_TEXT: Record<PlayerStatus, string> = {
             [attr.aria-label]="coverLabel()"
           >
             <div class="artwork-fallback" aria-hidden="true">
-              <mat-icon>hexagon</mat-icon>
+              <mat-icon>album</mat-icon>
             </div>
             @for (l of layers(); track l.key) {
               <img

@@ -1,4 +1,4 @@
-// Shared geometry: chamfered corners, AlienFX edge lighting, hexagons.
+// Shared geometry: chamfered corners, AlienFX edge lighting, circles.
 
 // 45-degree cuts on the top-left and bottom-right corners, with a 1 px edge line that follows
 // the cut (a plain border would stop at the clip). `$fill` is the surface colour.
@@ -60,10 +60,11 @@
   }
 }
 
-// A flat-topped hexagon.
-@mixin hex {
-  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+// A circle (clipped, so focus rings and glows drawn inside stay round).
+@mixin circle {
+  border-radius: 50%;
+  clip-path: circle(50%);
 }
 
-// Faint hex grid for large surfaces (static background, no per-frame cost).
-$hex-grid: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='20.785' viewBox='0 0 36 20.785'%3E%3Cpath d='M0 10.392h6l6-10.392h12l6 10.392h6M6 10.392l6 10.392h12l6-10.392' fill='none' stroke='%23b8c6e0' stroke-opacity='.07' stroke-width='.8'/%3E%3C/svg%3E");
+// Faint grid of small rings for large surfaces (static background, no per-frame cost).
+$ring-grid: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='3' fill='none' stroke='%23b8c6e0' stroke-opacity='.07' stroke-width='.8'/%3E%3C/svg%3E");

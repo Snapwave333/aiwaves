@@ -37,11 +37,10 @@ app-root {
     filter: drop-shadow(0 0 6px var(--aw-accent-glow));
   }
 
-  .logo-hex {
+  .logo-ring {
     fill: none;
     stroke: var(--aw-accent);
     stroke-width: 2;
-    stroke-linejoin: round;
   }
 
   .logo-wave {
@@ -107,17 +106,17 @@ app-root {
   );
   white-space: nowrap;
 
-  .status-hex {
+  .status-dot {
     width: 10px;
     height: 10px;
     background: var(--tone);
-    @include m.hex;
+    @include m.circle;
   }
 
   &.status-open {
     --tone: var(--aw-live);
 
-    .status-hex {
+    .status-dot {
       animation: aw-breathe 2.4s ease-in-out infinite;
     }
   }
@@ -328,7 +327,7 @@ app-root {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .status-chip.status-open .status-hex {
+  .status-chip.status-open .status-dot {
     animation: none;
   }
 }

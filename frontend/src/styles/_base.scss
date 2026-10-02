@@ -22,7 +22,7 @@ body {
       color-mix(in srgb, var(--aw-accent) 7%, transparent),
       transparent 70%
     ),
-    m.$hex-grid, var(--aw-space);
+    m.$ring-grid, var(--aw-space);
 }
 
 button {
@@ -289,7 +289,7 @@ button {
   width: 8px;
   height: 8px;
   flex: none;
-  @include m.hex;
+  @include m.circle;
 }
 
 .light {
@@ -322,7 +322,7 @@ button {
     width: 10px;
     height: 10px;
     border: 0;
-    @include m.hex;
+    @include m.circle;
 
     &.on {
       background: var(--aw-accent);

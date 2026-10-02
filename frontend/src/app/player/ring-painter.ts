@@ -1,21 +1,21 @@
 import { AudioService } from '../core/audio.service';
-import { RingPoint, decay, envelopeBands, hexRing, logBands, mirrorIndex } from './spectrum';
+import { RingPoint, circleRing, decay, envelopeBands, logBands, mirrorIndex } from './spectrum';
 
-/** Ring geometry in CSS px: hexagon circumradius, bar gap and length, canvas size. */
-export const RING = { r: 60, gap: 3, minBar: 2, maxBar: 15, w: 160, h: 142, points: 84 } as const;
+/** Ring geometry in CSS px: circle radius, bar gap and length, canvas size. */
+export const RING = { r: 54, gap: 3, minBar: 2, maxBar: 15, w: 160, h: 150, points: 84 } as const;
 const SCOPE_INSET = 6;
 const SCOPE_AMP = 4;
 const COLOR_EVERY_FRAMES = 6;
 
 /**
- * Draws the hexagonal spectrum ring around the cover art: one bar per ring point (mirrored
- * log-frequency bands), a glowing hexagon outline and an oscilloscope trace just inside it.
+ * Draws the round spectrum ring around the cover art: one bar per ring point (mirrored
+ * log-frequency bands), a glowing circle and an oscilloscope trace just inside it.
  * Allocates nothing per frame.
  */
 export class RingPainter {
   private readonly ctx: CanvasRenderingContext2D | null;
-  private readonly points: RingPoint[] = hexRing(RING.points, RING.r);
-  private readonly scope: RingPoint[] = hexRing(RING.points * 2, RING.r - SCOPE_INSET);
+  private readonly points: RingPoint[] = circleRing(RING.points, RING.r);
+  private readonly scope: RingPoint[] = circleRing(RING.points * 2, RING.r - SCOPE_INSET);
   private readonly target = new Float32Array(RING.points / 2);
   private readonly shown = new Float32Array(RING.points / 2);
   private readonly freq: Uint8Array<ArrayBuffer>;
@@ -73,22 +73,17 @@ export class RingPainter {
     const cy = RING.h / 2;
     ctx.clearRect(0, 0, RING.w, RING.h);
 
-    // the hexagon outline
+    // the circle
     ctx.globalAlpha = 0.55;
     ctx.strokeStyle = this.accent;
     ctx.lineWidth = 1;
     ctx.beginPath();
-    for (let i = 0; i < this.points.length; i++) {
-      const p = this.points[i];
-      if (i === 0) ctx.moveTo(cx + p.x, cy + p.y);
-      else ctx.lineTo(cx + p.x, cy + p.y);
-    }
-    ctx.closePath();
+    ctx.arc(cx, cy, RING.r, 0, Math.PI * 2);
     ctx.stroke();
 
     // spectrum bars: accent at the base, magenta tips on the loud ones
     const n = this.points.length;
-    ctx.lineWidth = ((6 * RING.r) / n) * 0.5;
+    ctx.lineWidth = ((2 * Math.PI * RING.r) / n) * 0.5;
     ctx.lineCap = 'butt';
     for (let i = 0; i < n; i++) {
       const p = this.points[i];

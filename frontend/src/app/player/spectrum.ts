@@ -1,54 +1,28 @@
 /**
- * Geometry and band math for the player's hexagonal spectrum ring: bars stand on the perimeter
- * of a flat-topped hexagon around the cover art and point outwards; an oscilloscope trace runs
- * just inside it. Pure functions; the player draws them on a canvas once per frame.
+ * Geometry and band math for the player's round spectrum ring: bars stand on a circle around the
+ * cover art and point outwards; an oscilloscope trace runs just inside it. Pure functions; the
+ * player draws them on a canvas once per frame.
  */
 
 export interface RingPoint {
   x: number;
   y: number;
-  /** Outward unit normal of the edge the point is on. */
+  /** Outward unit normal (for a circle: straight out from the centre). */
   nx: number;
   ny: number;
 }
 
-const SQRT3_2 = Math.sqrt(3) / 2;
-
 /**
- * `n` points evenly spread along a flat-topped hexagon of circumradius `r` centred on (0, 0),
- * y down, starting at the middle of the top edge and going clockwise.
+ * `n` points evenly spread round a circle of radius `r` centred on (0, 0), y down, starting just
+ * right of the top and going clockwise.
  */
-export function hexRing(n: number, r: number): RingPoint[] {
-  const h = r * SQRT3_2;
-  // the perimeter as a path that starts and ends at the middle of the top edge
-  const path: [number, number][] = [
-    [0, -h],
-    [r / 2, -h],
-    [r, 0],
-    [r / 2, h],
-    [-r / 2, h],
-    [-r, 0],
-    [-r / 2, -h],
-    [0, -h],
-  ];
-  const segs = path.slice(1).map(([x1, y1], i) => {
-    const [x0, y0] = path[i];
-    // the normal of a regular hexagon's edge points at the edge's middle
-    const mx = i === 0 || i === 6 ? 0 : (x0 + x1) / 2;
-    const my = i === 0 || i === 6 ? -h : (y0 + y1) / 2;
-    const ml = Math.hypot(mx, my);
-    return { x0, y0, x1, y1, len: Math.hypot(x1 - x0, y1 - y0), nx: mx / ml, ny: my / ml };
-  });
-  const total = 6 * r;
+export function circleRing(n: number, r: number): RingPoint[] {
   const out: RingPoint[] = [];
-  let seg = 0;
-  let start = 0;
   for (let i = 0; i < n; i++) {
-    const s = ((i + 0.5) / n) * total;
-    while (seg < segs.length - 1 && s > start + segs[seg].len) start += segs[seg++].len;
-    const g = segs[seg];
-    const u = (s - start) / g.len;
-    out.push({ x: g.x0 + (g.x1 - g.x0) * u, y: g.y0 + (g.y1 - g.y0) * u, nx: g.nx, ny: g.ny });
+    const a = -Math.PI / 2 + (2 * Math.PI * (i + 0.5)) / n;
+    const nx = Math.cos(a);
+    const ny = Math.sin(a);
+    out.push({ x: r * nx, y: r * ny, nx, ny });
   }
   return out;
 }

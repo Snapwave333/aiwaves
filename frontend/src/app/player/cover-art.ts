@@ -4,7 +4,7 @@ import { bucketMax } from '../views/clip-render';
 /**
  * Local cover art for demo / offline mode (CONTRACT section 10: "the frontend draws its own
  * placeholder art"). Made from the song like the server's covers: its track colours, one orbit
- * per section, chord ticks, the master waveform wrapped round a hexagon, and a seeded random
+ * per section, chord ticks, the master waveform wrapped round a circle, and a seeded random
  * nebula, so every seed gives a different piece. `coverPlan` is pure; `renderLocalCover` paints
  * it on a canvas.
  */
@@ -32,9 +32,10 @@ export interface CoverPlan {
   orbits: Orbit[];
   /** Chord changes as angles (radians) round the outer orbit. */
   ticks: number[];
-  /** Master waveform, one value per step round the hexagon. */
+  /** Master waveform, one value per step round the circle. */
   wave: number[];
-  hexRot: number;
+  /** Where round the circle the song starts (radians). */
+  rot: number;
   stars: { x: number; y: number; r: number; a: number }[];
 }
 
@@ -115,29 +116,14 @@ export function coverPlan(p: Project, seed: number): CoverPlan {
     orbits,
     ticks,
     wave: bucketMax(p.audio.peaks ?? [], WAVE_STEPS),
-    hexRot: (Math.floor(rnd() * 6) * Math.PI) / 6,
+    rot: (Math.floor(rnd() * 6) * Math.PI) / 6,
     stars,
   };
 }
 
-function hexPath(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, rot: number) {
-  ctx.beginPath();
-  for (let i = 0; i < 6; i++) {
-    const a = rot + (i * Math.PI) / 3;
-    const x = cx + r * Math.cos(a);
-    const y = cy + r * Math.sin(a);
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  }
-  ctx.closePath();
-}
-
-/** Point on a hexagon of circumradius r at angle t (radians), for wrapping the waveform. */
-function onHex(r: number, t: number, rot: number): [number, number] {
-  const k = Math.PI / 3;
-  const rel = (((t - rot) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-  const d = (r * Math.cos(k / 2)) / Math.cos((rel % k) - k / 2);
-  return [d * Math.cos(t), d * Math.sin(t)];
+/** Point on a circle of radius r at angle t (radians), for wrapping the waveform. */
+function onCircle(r: number, t: number): [number, number] {
+  return [r * Math.cos(t), r * Math.sin(t)];
 }
 
 export function paintCover(ctx: CanvasRenderingContext2D, plan: CoverPlan, size: number): void {
@@ -191,7 +177,7 @@ export function paintCover(ctx: CanvasRenderingContext2D, plan: CoverPlan, size:
   }
   ctx.setLineDash([]);
 
-  // the master waveform wrapped round a hexagon, in the brightest colour
+  // the master waveform wrapped round a circle, in the brightest colour
   const r = size * 0.16;
   const amp = size * 0.13;
   ctx.globalAlpha = 0.95;
@@ -199,9 +185,9 @@ export function paintCover(ctx: CanvasRenderingContext2D, plan: CoverPlan, size:
   ctx.lineWidth = Math.max(1, size / 340);
   ctx.beginPath();
   plan.wave.forEach((v, i) => {
-    const t = (i / plan.wave.length) * Math.PI * 2 - Math.PI / 2;
-    const [x0, y0] = onHex(r, t, plan.hexRot);
-    const [x1, y1] = onHex(r + v * amp, t, plan.hexRot);
+    const t = (i / plan.wave.length) * Math.PI * 2 - Math.PI / 2 + plan.rot;
+    const [x0, y0] = onCircle(r, t);
+    const [x1, y1] = onCircle(r + v * amp, t);
     ctx.moveTo(c + x0, c + y0);
     ctx.lineTo(c + x1, c + y1);
   });
@@ -210,7 +196,8 @@ export function paintCover(ctx: CanvasRenderingContext2D, plan: CoverPlan, size:
   ctx.globalAlpha = 1;
   ctx.lineWidth = Math.max(1.5, size / 220);
   ctx.strokeStyle = plan.bg[1];
-  hexPath(ctx, c, c, r * 0.94, plan.hexRot);
+  ctx.beginPath();
+  ctx.arc(c, c, r * 0.94, 0, Math.PI * 2);
   ctx.stroke();
 
   // chord changes as ticks round the outside

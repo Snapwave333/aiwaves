@@ -1,29 +1,27 @@
-import { decay, envelopeBands, hexRing, logBands, mirrorIndex } from './spectrum';
+import { circleRing, decay, envelopeBands, logBands, mirrorIndex } from './spectrum';
 
 describe('spectrum ring', () => {
-  it('spreads points evenly around a flat-topped hexagon, starting at the top, clockwise', () => {
-    const r = 60;
-    const h = (r * Math.sqrt(3)) / 2;
-    const pts = hexRing(96, r);
+  it('spreads points evenly round a circle, starting at the top, clockwise', () => {
+    const r = 54;
+    const pts = circleRing(96, r);
     expect(pts.length).toBe(96);
-    // the first point is just right of the top edge's middle, with an upward normal
-    expect(pts[0].y).toBeCloseTo(-h);
+    // the first point is just right of the top, with an (almost) upward normal
+    expect(pts[0].y).toBeCloseTo(-r, 0);
     expect(pts[0].x).toBeGreaterThan(0);
-    expect(pts[0].nx).toBeCloseTo(0);
-    expect(pts[0].ny).toBeCloseTo(-1);
-    // every point is on the hexagon: between the inradius and the circumradius
+    expect(pts[0].ny).toBeLessThan(-0.99);
     for (const p of pts) {
-      const d = Math.hypot(p.x, p.y);
-      expect(d).toBeGreaterThanOrEqual(h - 1e-6);
-      expect(d).toBeLessThanOrEqual(r + 1e-6);
+      // on the circle, normal straight out from the centre
+      expect(Math.hypot(p.x, p.y)).toBeCloseTo(r);
       expect(Math.hypot(p.nx, p.ny)).toBeCloseTo(1);
-      // normals point outwards
-      expect(p.x * p.nx + p.y * p.ny).toBeGreaterThan(0);
+      expect(p.nx).toBeCloseTo(p.x / r);
+      expect(p.ny).toBeCloseTo(p.y / r);
     }
-    // a quarter of the way round: on the right-hand slanted edges
-    expect(pts[24].x).toBeGreaterThan(r / 2);
-    // halfway: the middle of the bottom edge
-    expect(pts[48].y).toBeCloseTo(h);
+    // a quarter of the way round: on the right; halfway: at the bottom
+    expect(pts[24].x).toBeGreaterThan(r * 0.99);
+    expect(pts[48].y).toBeGreaterThan(r * 0.99);
+    // evenly spaced
+    const step = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+    expect(Math.hypot(pts[60].x - pts[59].x, pts[60].y - pts[59].y)).toBeCloseTo(step);
   });
 
   it('mirrors bands so the ring is symmetric', () => {
