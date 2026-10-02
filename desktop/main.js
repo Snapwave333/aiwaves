@@ -171,17 +171,16 @@ const BOOT_SCREEN = `<!doctype html><meta charset="utf-8"><title>AIWaves</title>
 html,body{margin:0;height:100%;background:#07090d;color:#cfe9ff;font:600 12px/1.4 'Segoe UI',sans-serif;
   display:grid;place-items:center;-webkit-app-region:drag;overflow:hidden}
 .c{display:grid;justify-items:center;gap:22px}
-.hex{width:92px;height:106px;background:linear-gradient(160deg,#00e5ff,#b14dff);
-  clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);filter:drop-shadow(0 0 18px #00e5ff);
+.orb{width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#7ff4ff,#00e5ff 35%,#b14dff 100%);
+  box-shadow:0 0 0 6px #07090d,0 0 0 8px #00e5ff55;filter:drop-shadow(0 0 18px #00e5ff);
   animation:b 2.4s ease-in-out infinite}
-.hex::after{content:'';position:absolute}
 h1{margin:0;font-size:22px;letter-spacing:.42em;padding-left:.42em;color:#e8f6ff}
 .bar{width:260px;height:3px;background:#151a22;overflow:hidden}
 .bar i{display:block;width:40%;height:100%;background:#00e5ff;box-shadow:0 0 12px #00e5ff;animation:s 1.2s ease-in-out infinite}
 p{margin:0;letter-spacing:.3em;color:#6b7a90}
 @keyframes b{50%{filter:drop-shadow(0 0 30px #b14dff)}}@keyframes s{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
-</style><div class="c"><div class="hex"></div><h1>AIWAVES</h1><div class="bar"><i></i></div><p>INITIALIZING ENGINE</p></div>`;
+</style><div class="c"><div class="orb"></div><h1>AIWAVES</h1><div class="bar"><i></i></div><p>INITIALIZING ENGINE</p></div>`;
 
 function lockDown() {
   // the workspace needs no camera, microphone, location, notifications...: deny every request
